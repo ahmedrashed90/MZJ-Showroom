@@ -235,9 +235,9 @@
           panels.push({title:title, sub:sub, kind:'features', items:part});
         });
       }
-      addFeaturePages('المواصفات الداخلية', 'تجهيزات المقصورة', fg.interior || []);
-      addFeaturePages('المواصفات الخارجية', 'التجهيز الخارجي', fg.exterior || []);
-      addFeaturePages('مواصفات الأمان', 'أنظمة السلامة', fg.safety || []);
+      addFeaturePages('المواصفات الداخلية', '', fg.interior || []);
+      addFeaturePages('المواصفات الخارجية', '', fg.exterior || []);
+      addFeaturePages('مواصفات الأمان', '', fg.safety || []);
       // الألوان تستخدم كفلتر لسلايدر الصور من الداش بورد فقط، ولا تظهر كسلايد بعد المواصفات.
       if(!panels.length) panels.push({title:'بيانات السيارة', sub:'لا توجد بيانات كافية', kind:'empty', items:[]});
     }
@@ -295,7 +295,7 @@
       else if(p.kind === 'features') body = itemGrid(p.items);
       else if(p.kind === 'colors') body = colorsHtml(p.items, data.specs||{});
       else body = '<div class="v11-empty">لا توجد بيانات كافية لهذه السيارة.</div>';
-      return '<section class="v11-dynamic">'+sectionTabs(p.title)+'<div class="v11-chip">'+esc(p.sub||'')+'</div><h2>'+esc(p.title)+'</h2>'+body+'</section>';
+      return '<section class="v11-dynamic">'+sectionTabs(p.title)+(p.sub ? '<div class="v11-chip">'+esc(p.sub||'')+'</div>' : '')+'<h2>'+esc(p.title)+'</h2>'+body+'</section>';
     }
 
     function summaryHtml(){
