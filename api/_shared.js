@@ -362,16 +362,22 @@ function extractColorsFromStock(raw, specs){
   return out;
 }
 function buildAvailableSliderColors(stockCar, html){
-  const out = [];
-  // v28: لا نسحب ألوان عامة من CSS أو أزرار الصفحة.
-  // المصدر الوحيد الأساسي هو بلوك الألوان الحقيقي ومفاتيح التاكسونومي:
-  // car_exterior_color / exterior-color / car_interior_color / interior-color.
-  extractWpTaxonomyColorsFromHtml(html || '', stockCar.carUrl || '').forEach(c => addStrictColor(out, c));
+  const slider = [];
+  const fallback = [];
 
-  // fallback محدود من endpoint الاستوك فقط لو كان بيرجع لون صريح.
-  extractColorsFromStock(stockCar.rawStock || {}, stockCar.specs || {}).forEach(c => addStrictColor(out, {label:c.raw || c.label, source:c.source || 'stock'}));
+  // v29: ألوان السلايدر لازم تكون ألوان مرتبطة بصور فعلية من Color Variations.
+  // أي لون بدون صور لا يتم استخدامه كسلايدر حتى لا يختار المستخدم لون ولا تتغير الصور.
+  extractColorVariationsFromHtml(html || '', stockCar.carUrl || '').forEach(c => {
+    const imgs = unique(c.images || []).filter(Boolean);
+    if(!imgs.length) return;
+    addStrictColor(slider, Object.assign({}, c, { images: imgs, source: 'site-color-variation' }));
+  });
 
-  return out;
+  // fallback للعرض فقط: ألوان التاكسونومي الحقيقية، لكن بدون صور لا يعتمد عليها السلايدر.
+  extractWpTaxonomyColorsFromHtml(html || '', stockCar.carUrl || '').forEach(c => addStrictColor(fallback, c));
+  extractColorsFromStock(stockCar.rawStock || {}, stockCar.specs || {}).forEach(c => addStrictColor(fallback, {label:c.raw || c.label, source:c.source || 'stock'}));
+
+  return slider.length ? slider : fallback;
 }
 
 
@@ -403,7 +409,7 @@ function stockItemToCar(item){
   put('قاعدة العجلات (مم)', item.mm_wheel);
   put('حجم الشنطة', item.back_size);
   return {
-    parserVersion: 'v28-site-taxonomy-colors',
+    parserVersion: 'v29-color-variation-images',
     source: 'stock',
     id: item.id || '',
     carUrl: item.url || item.link || '',
@@ -519,7 +525,7 @@ function mergeCar(stockCar, details, pageHtml){
     : (ext || inn ? [{ external: ext || 'لون خارجي', internal: inn || '', token: normalizeColorToken(ext), raw: ext || '', source:'stock-spec', images:[] }] : []);
   return Object.assign({}, stockCar, {
     source: 'stock + car-page-js',
-    parserVersion: 'v28-site-taxonomy-colors',
+    parserVersion: 'v29-color-variation-images',
     images: images.length ? images : stockCar.images,
     featureGroups,
     colors,

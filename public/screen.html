@@ -201,8 +201,9 @@
           var siteImages = imagesForSiteColor(color);
           if(siteImages.length) arr = siteImages;
           else {
+            var hasColorData = data && ((data.availableSliderColors||[]).length || (data.colors||[]).length);
             var filtered = base.filter(function(u){ return colorMatch(u, color); });
-            arr = filtered.length ? filtered : base;
+            arr = filtered.length ? filtered : (hasColorData ? [] : base);
           }
         }
       }
