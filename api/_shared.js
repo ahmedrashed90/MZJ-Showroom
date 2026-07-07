@@ -62,6 +62,79 @@ function unique(arr){
     return true;
   });
 }
+
+const COLOR_DEFS = [
+  { token:'white',  label:'أبيض',     re: /أبيض|ابيض|white|pearl|snow|polar|wh\b|wht\b/i },
+  { token:'black',  label:'أسود',     re: /أسود|اسود|black|obsidian|bk\b|blk\b/i },
+  { token:'silver', label:'فضي',      re: /فضي|silver|silv|sl\b/i },
+  { token:'gray',   label:'رمادي',    re: /رمادي|رصاصي|gray|grey|graphite|gy\b/i },
+  { token:'red',    label:'أحمر',     re: /أحمر|احمر|red|burgundy|maroon|rd\b/i },
+  { token:'blue',   label:'أزرق',     re: /أزرق|ازرق|blue|navy|blu\b/i },
+  { token:'brown',  label:'بني/موكا', re: /بني|موكا|brown|mocha|bronze|copper/i },
+  { token:'beige',  label:'بيج',      re: /بيج|beige|cream|ivory/i },
+  { token:'green',  label:'أخضر',     re: /أخضر|اخضر|green/i },
+  { token:'gold',   label:'ذهبي',     re: /ذهبي|gold|golden/i },
+  { token:'orange', label:'برتقالي',  re: /برتقالي|orange/i }
+];
+function normalizeColorToken(value){
+  value = cleanText(value);
+  if(!value) return '';
+  for(const c of COLOR_DEFS){ if(c.re.test(value)) return c.token; }
+  return value.toLowerCase().replace(/\s+/g,'_').replace(/[^\p{L}\p{N}_-]/gu,'');
+}
+function colorLabelFromToken(token, fallback){
+  token = String(token || '');
+  const found = COLOR_DEFS.find(c => c.token === token);
+  return found ? found.label : cleanText(fallback || token);
+}
+function addColorOption(list, value, source){
+  const label = cleanText(value);
+  if(!label || label === 'null' || label === '-') return;
+  const token = normalizeColorToken(label);
+  if(!token) return;
+  if(list.some(x => x.token === token || x.label === label)) return;
+  list.push({ token, label: colorLabelFromToken(token, label), raw: label, source: source || 'site' });
+}
+function extractKnownColors(text){
+  const list = [];
+  text = cleanText(text);
+  if(!text) return list;
+  COLOR_DEFS.forEach(c => { if(c.re.test(text)) list.push({ token:c.token, label:c.label, raw:c.label, source:'html' }); });
+  return list;
+}
+function extractColorsFromHtml(html){
+  const out = [];
+  const text = cleanText(html);
+  const labelRe = /(الألوان المتاحة|الالوان المتاحة|اللون الخارجي|الألوان الخارجية|الالوان الخارجية|Exterior Color|Exterior Colors|Available Colors)(.{0,500})/ig;
+  let m;
+  while((m = labelRe.exec(text))){
+    extractKnownColors(m[2]).forEach(c => { if(!out.some(x=>x.token===c.token)) out.push(c); });
+  }
+  // لو الصفحة فيها سكربتات/خصائص ألوان واضحة، التقطها كاحتياطي بدون ما نملأ ألوان عشوائية كتير.
+  const metaRe = /(car_exterior_color|exterior_color|available_colors|colors)["'\s:=]+([^"'<>\n]{1,160})/ig;
+  while((m = metaRe.exec(html))){
+    extractKnownColors(m[2]).forEach(c => { if(!out.some(x=>x.token===c.token)) out.push(c); });
+  }
+  return out;
+}
+function extractColorsFromStock(raw, specs){
+  const out = [];
+  const keys = ['exterior_color','car_exterior_color','external_color','custom_external_color','color','colour','available_colors','availableColors','colors'];
+  keys.forEach(k => {
+    const v = raw && raw[k];
+    if(Array.isArray(v)) v.forEach(x => addColorOption(out, x, 'stock'));
+    else if(typeof v === 'string') v.split(/[|,،\/]+/).forEach(x => addColorOption(out, x, 'stock'));
+  });
+  addColorOption(out, specs && specs['اللون الخارجي'], 'stock-spec');
+  return out;
+}
+function buildAvailableSliderColors(stockCar, html){
+  const out = [];
+  extractColorsFromStock(stockCar.rawStock || {}, stockCar.specs || {}).forEach(c => addColorOption(out, c.raw || c.label, c.source));
+  extractColorsFromHtml(html || '').forEach(c => addColorOption(out, c.raw || c.label, c.source));
+  return out;
+}
+
 function stockItemToCar(item){
   const specs = {};
   const put = (label, value)=>{ value = cleanText(value); if(value) specs[label] = value; };
@@ -198,16 +271,19 @@ function mergeCar(stockCar, details, pageHtml){
     safety: unique(details.safety || [])
   };
   const images = extractImages(pageHtml || '', stockCar.carUrl, stockCar.image);
-  const colors = [];
   const ext = stockCar.specs['اللون الخارجي'];
   const inn = stockCar.specs['اللون الداخلي'];
-  if(ext || inn) colors.push({ external: ext || 'لون خارجي', internal: inn || '' });
+  const availableSliderColors = buildAvailableSliderColors(stockCar, pageHtml || '');
+  const colors = availableSliderColors.length
+    ? availableSliderColors.map(c => ({ external: c.label, internal: inn || '', token: c.token, raw: c.raw || c.label, source: c.source || 'site' }))
+    : (ext || inn ? [{ external: ext || 'لون خارجي', internal: inn || '', token: normalizeColorToken(ext), raw: ext || '', source:'stock-spec' }] : []);
   return Object.assign({}, stockCar, {
     source: 'stock + car-page-js',
     parserVersion: 'v11-fixed-summary-specs',
     images: images.length ? images : stockCar.images,
     featureGroups,
     colors,
+    availableSliderColors,
     specsComplete: !!(featureGroups.interior.length || featureGroups.exterior.length || featureGroups.safety.length),
     updatedAt: new Date().toISOString()
   });

@@ -26,7 +26,30 @@
     function uniq(arr){ var seen={}; return (arr||[]).map(cleanText).filter(function(x){ if(!x || seen[x]) return false; seen[x]=1; return true; }); }
     function chunks(arr, size){ var out=[]; arr=arr||[]; for(var i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size)); return out; }
     function badImage(url){ url=String(url||'').toLowerCase(); return /default-car|placeholder|no-image|noimage|logo|mzj-logo|favicon|icon|cropped|avatar|watermark|loader|spinner|blank/.test(url); }
-    function colorMatch(url,color){ if(!color||color==='all') return true; url=String(url||'').toLowerCase(); var m={white:/white|ابيض|أبيض|\bwh\b|pearl|snow/,black:/black|اسود|أسود|\bbk\b/,silver:/silver|فضي|silv|\bsl\b/,gray:/gray|grey|رمادي|gr[e]?y|\bgy\b/,red:/red|احمر|أحمر|\brd\b/,blue:/blue|ازرق|أزرق|\bbl\b/,brown:/brown|mocha|بني|موكا/,beige:/beige|بيج|cream/}; return (m[color]||/./).test(url); }
+    function canonColor(color){
+      color=String(color||'').toLowerCase();
+      if(/white|أبيض|ابيض|pearl|snow/.test(color)) return 'white';
+      if(/black|أسود|اسود/.test(color)) return 'black';
+      if(/silver|فضي/.test(color)) return 'silver';
+      if(/gray|grey|رمادي|رصاصي/.test(color)) return 'gray';
+      if(/red|أحمر|احمر/.test(color)) return 'red';
+      if(/blue|أزرق|ازرق/.test(color)) return 'blue';
+      if(/brown|mocha|بني|موكا|bronze|copper/.test(color)) return 'brown';
+      if(/beige|بيج|cream|ivory/.test(color)) return 'beige';
+      if(/green|أخضر|اخضر/.test(color)) return 'green';
+      if(/gold|ذهبي/.test(color)) return 'gold';
+      return color;
+    }
+    function colorMatch(url,color){
+      if(!color||color==='all') return true;
+      url=String(url||'').toLowerCase();
+      var key=canonColor(color);
+      var m={white:/white|ابيض|أبيض|\bwh\b|pearl|snow|polar/,black:/black|اسود|أسود|\bbk\b|blk/,silver:/silver|فضي|silv|\bsl\b/,gray:/gray|grey|رمادي|رصاصي|graphite|\bgy\b/,red:/red|احمر|أحمر|\brd\b|maroon|burgundy/,blue:/blue|ازرق|أزرق|\bbl\b|navy/,brown:/brown|mocha|بني|موكا|bronze|copper/,beige:/beige|بيج|cream|ivory/,green:/green|أخضر|اخضر/,gold:/gold|ذهبي|golden/};
+      var re = m[key];
+      if(re) return re.test(url);
+      var safe = String(color).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      return safe ? new RegExp(safe,'i').test(url) : true;
+    }
 
     var screenId = (param('id') || 'A1').toUpperCase();
     var lastCarUrl = '';
@@ -154,10 +177,17 @@
     }
 
     function images(){
-      var arr = uniq((data && data.images) || []).filter(function(u){ return !badImage(u) && !badLoaded[u]; });
+      var base = uniq((data && data.images) || []).filter(function(u){ return !badImage(u) && !badLoaded[u]; });
+      var arr = base.slice();
       var selected = Array.isArray(screenOptions.selectedImages) ? screenOptions.selectedImages.filter(Boolean) : [];
       if(selected.length){ arr = arr.filter(function(u){ return selected.indexOf(u) >= 0; }); }
-      else { arr = arr.filter(function(u){ return colorMatch(u, screenOptions.imageFilterColor || 'all'); }); }
+      else {
+        var color = screenOptions.imageFilterColor || 'all';
+        if(color && color !== 'all'){
+          var filtered = base.filter(function(u){ return colorMatch(u, color); });
+          arr = filtered.length ? filtered : base;
+        }
+      }
       return arr;
     }
 
