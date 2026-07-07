@@ -3,7 +3,9 @@
   "rewrites": [
     { "source": "/", "destination": "/dashboard" },
     { "source": "/dashboard", "destination": "/dashboard.html" },
-    { "source": "/screen", "destination": "/screen.html" }
+    { "source": "/screen", "destination": "/screen.html" },
+    { "source": "/pdf", "destination": "/export.html" },
+    { "source": "/export", "destination": "/export.html" }
   ],
   "headers": [
     {

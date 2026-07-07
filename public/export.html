@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>تصدير PDF | MZJ Showroom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body.pdf-body{margin:0;min-height:100vh;background:#f3eee9;color:#281916;font-family:Tajawal,Arial,sans-serif;overflow:auto}
+    .pdf-toolbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;background:rgba(255,255,255,.94);border-bottom:1px solid #eadfd7;box-shadow:0 8px 25px rgba(62,36,32,.08);backdrop-filter:blur(8px)}
+    .pdf-toolbar .left,.pdf-toolbar .right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.pdf-toolbar h1{margin:0;font-size:18px;color:#3e2420}.pdf-toolbar span{font-size:13px;color:#7b665c}.pdf-btn{border:1px solid #d9c8bd;background:#fff;color:#3e2420;border-radius:13px;padding:10px 14px;font-weight:900;cursor:pointer}.pdf-btn.primary{background:#3e2420;color:#fff;border-color:#3e2420}.pdf-btn:disabled{opacity:.55;cursor:not-allowed}.pdf-wrap{padding:22px;display:grid;place-items:center;min-height:calc(100vh - 72px)}
+    .pdf-sheet{width:1122px;height:794px;background:#f8f4f0;position:relative;overflow:hidden;border-radius:24px;box-shadow:0 20px 60px rgba(62,36,32,.18);padding:30px;direction:rtl;color:#2f1d19}
+    .pdf-sheet:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 8%,rgba(188,143,116,.22),transparent 34%),linear-gradient(135deg,rgba(62,36,32,.08),transparent 50%);pointer-events:none}.pdf-sheet:after{content:"";position:absolute;inset:0;opacity:.06;background-image:linear-gradient(90deg,#3e2420 1px,transparent 1px),linear-gradient(#3e2420 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
+    .pdf-content{position:relative;z-index:2;height:100%;display:grid;grid-template-columns:1.05fr .95fr;gap:24px}.pdf-brand{position:absolute;top:24px;right:30px;z-index:3;display:flex;align-items:center;gap:12px}.pdf-brand img{width:112px;height:auto;display:block}.pdf-brand b{font-size:20px;color:#3e2420;white-space:nowrap}.pdf-car{align-self:stretch;background:#fff;border:1px solid #e1d7cf;border-radius:24px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-width:0;margin-top:54px}.pdf-car img{width:100%;height:100%;object-fit:contain;display:block;background:#fff}.pdf-info{min-width:0;padding-top:68px;display:flex;flex-direction:column;gap:14px}.pdf-title{background:linear-gradient(145deg,#4a302b,#2e1b18);color:#fff;border:1px solid rgba(188,143,116,.42);border-radius:24px;padding:20px 22px;box-shadow:0 16px 38px rgba(62,36,32,.22)}.pdf-title h2{font-size:34px;line-height:1.08;margin:0 0 8px;font-weight:900}.pdf-title h3{font-size:22px;margin:0;color:#d6a07f;font-weight:900}.pdf-title p{margin:6px 0 0;color:#eadbd1;font-size:17px}.pdf-section{background:rgba(255,255,255,.88);border:1px solid #e1d7cf;border-radius:24px;padding:18px 20px;box-shadow:0 12px 35px rgba(62,36,32,.10);flex:1;min-height:0}.pdf-section h2{margin:0 0 14px;font-size:27px;color:#3e2420}.pdf-specs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pdf-spec{background:#fff;border:1px solid #e3d7ce;border-radius:16px;padding:10px 12px;min-height:58px}.pdf-spec small{display:block;color:#8a6e60;font-weight:800;font-size:13px;margin-bottom:3px}.pdf-spec b{display:block;color:#2f1d19;font-weight:900;font-size:17px;line-height:1.15}.pdf-foot{position:absolute;bottom:18px;left:30px;right:30px;z-index:3;display:flex;align-items:center;justify-content:space-between;color:#7b665c;font-weight:800;font-size:13px}.pdf-loading{display:grid;place-items:center;min-height:420px;color:#6b554b;font-weight:900}.hidden{display:none!important}
+    @media(max-width:1200px){.pdf-sheet{transform:scale(.75);transform-origin:top center;margin-bottom:-190px}.pdf-wrap{align-items:start;overflow:auto}.pdf-toolbar{align-items:flex-start;flex-direction:column}.pdf-toolbar .left,.pdf-toolbar .right{width:100%}.pdf-btn{flex:1}}
+    @media print{.pdf-toolbar{display:none!important}body.pdf-body{background:#fff}.pdf-wrap{padding:0;min-height:auto}.pdf-sheet{box-shadow:none;border-radius:0;width:297mm;height:210mm;transform:none;margin:0}}
+  </style>
+</head>
+<body class="pdf-body">
+  <div class="pdf-toolbar">
+    <div class="right"><h1>تصدير PDF</h1><span id="status">جاري تحميل بيانات السيارة...</span></div>
+    <div class="left"><button class="pdf-btn" onclick="location.href='/dashboard'">رجوع للإدارة</button><button id="exportBtn" class="pdf-btn primary" onclick="exportPdf()" disabled>تصدير PDF</button></div>
+  </div>
+  <div class="pdf-wrap"><div id="root" class="pdf-loading">جاري تحميل صفحة التصدير...</div></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
+    var db = firebase.firestore();
+    var loadedData = null;
+    var loadedScreen = null;
+    var activeImage = '';
+
+    function param(n){ var u = new URL(location.href); return u.searchParams.get(n) || ''; }
+    function esc(s){ return String(s || '').replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+    function cleanText(s){ return String(s || '').replace(/\s+/g,' ').trim(); }
+    function uniq(arr){ var seen={}; return (arr||[]).map(cleanText).filter(function(x){ if(!x || seen[x]) return false; seen[x]=1; return true; }); }
+    function hash(str){ var h=2166136261; str=String(str||''); for(var i=0;i<str.length;i++){ h^=str.charCodeAt(i); h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); } return 'car_'+(h>>>0).toString(16); }
+    function badImage(url){ url=String(url||'').toLowerCase(); return /default-car|placeholder|no-image|noimage|logo|mzj-logo|favicon|icon|cropped|avatar|watermark|loader|spinner|blank/.test(url); }
+    function proxyImage(url){ return url ? '/api/image-proxy?url=' + encodeURIComponent(url) : ''; }
+    function canonColor(color){ color=String(color||'').toLowerCase(); if(/white|أبيض|ابيض|pearl|snow/.test(color))return'white'; if(/black|أسود|اسود/.test(color))return'black'; if(/silver|فضي/.test(color))return'silver'; if(/gray|grey|رمادي|رصاصي/.test(color))return'gray'; if(/red|أحمر|احمر/.test(color))return'red'; if(/blue|أزرق|ازرق/.test(color))return'blue'; if(/brown|mocha|بني|موكا|bronze|copper/.test(color))return'brown'; if(/beige|بيج|cream|ivory/.test(color))return'beige'; return color; }
+    function colorMatch(url,color){ if(!color||color==='all')return true; url=String(url||'').toLowerCase(); var key=canonColor(color); var m={white:/white|ابيض|أبيض|\bwh\b|pearl|snow|polar/,black:/black|اسود|أسود|\bbk\b|blk/,silver:/silver|فضي|silv|\bsl\b/,gray:/gray|grey|رمادي|رصاصي|graphite|\bgy\b/,red:/red|احمر|أحمر|\brd\b|maroon|burgundy/,blue:/blue|ازرق|أزرق|\bbl\b|navy/,brown:/brown|mocha|بني|موكا|bronze|copper/,beige:/beige|بيج|cream|ivory/}; var re=m[key]; return re ? re.test(url) : url.indexOf(String(color).toLowerCase())>=0; }
+    function imagesForSiteColor(data,color){ if(!data||!color||color==='all')return[]; var cols=[].concat(data.colors||[],data.availableSliderColors||[]), hit=null; cols.some(function(c){ var vals=[c.token,c.hex,c.raw,c.external,c.label].filter(Boolean).map(function(x){return String(x).toLowerCase();}); if(vals.indexOf(String(color).toLowerCase())>=0){ hit=c; return true; } return false; }); return hit && Array.isArray(hit.images) ? uniq(hit.images).filter(function(u){return !badImage(u);}) : []; }
+    function chooseImages(data, screen){
+      var selected = [].concat((screen&&screen.sliderImages)||[], (screen&&screen.selectedImages)||[]).filter(Boolean);
+      selected = uniq(selected).filter(function(u){return !badImage(u);});
+      if(selected.length) return selected;
+      var base = uniq([].concat((data&&data.images)||[], data&&data.image ? [data.image] : [])).filter(function(u){return !badImage(u);});
+      var color = (screen&&screen.imageFilterColor)||'all';
+      if(color && color !== 'all'){
+        var site = imagesForSiteColor(data,color);
+        if(site.length) return site;
+        var filtered = base.filter(function(u){return colorMatch(u,color);});
+        if(filtered.length) return filtered;
+      }
+      return base;
+    }
+    function specEntries(sp){
+      var order=['السعر','موديل السيارة','ماركة السيارة','نوع السيارة','فئة السيارة','هيكل السيارة','سعة المحرك','نوع الناقل','نظام الدفع','الوقود','استهلاك صرفية البنزين','الحصان الميكانيكي','عزم نيوتن','عدد السلندرات','عدد المقاعد','حجم الشنطة','اللون الخارجي','اللون الداخلي','الطول الكلي (مم)','العرض الكلي (مم)','الارتفاع الكلي (مم)','قاعدة العجلات (مم)','الضمان'];
+      var used={}, arr=[]; order.forEach(function(k){ if(sp&&sp[k]){ arr.push([k,sp[k]]); used[k]=1; } }); Object.keys(sp||{}).forEach(function(k){ if(!used[k]&&sp[k]) arr.push([k,sp[k]]); }); return arr.slice(0,18);
+    }
+    function setStatus(msg){ document.getElementById('status').textContent = msg || ''; }
+    async function readCar(carUrl){ var r=await fetch('/api/read-car?url='+encodeURIComponent(carUrl)); if(!r.ok) throw new Error('تعذر قراءة بيانات السيارة'); return await r.json(); }
+    async function load(){
+      try{
+        var screenId=(param('id')||'A1').toUpperCase(); var directUrl=param('url');
+        var screen={screenCode:screenId};
+        var carUrl=directUrl;
+        if(!carUrl){ var d=await db.collection('showroom_screens').doc(screenId).get(); if(!d.exists || !d.data().carUrl) throw new Error('لا توجد سيارة مرتبطة بهذه الشاشة'); screen=Object.assign(screen,d.data()||{}); carUrl=screen.carUrl; }
+        setStatus('جاري تجهيز ملف PDF للشاشة '+screenId+'...');
+        var cache=await db.collection('showroom_car_cache').doc(hash(carUrl)).get().catch(function(){return null;});
+        var data=(cache&&cache.exists)?cache.data():await readCar(carUrl);
+        loadedData=data; loadedScreen=screen;
+        render(data, screen);
+        document.getElementById('exportBtn').disabled=false; setStatus('جاهز للتصدير PDF');
+      }catch(e){ document.getElementById('root').className='pdf-loading'; document.getElementById('root').textContent=e.message||String(e); setStatus('تعذر التحميل'); }
+    }
+    function render(data, screen){
+      var sp=data.specs||{}; var imgs=chooseImages(data,screen); activeImage=imgs[0]||data.image||'';
+      var title=data.title||screen.carName||'سيارة المعرض';
+      var makeModel=(sp['ماركة السيارة']||'')+(sp['نوع السيارة']?' '+sp['نوع السيارة']:'');
+      var meta=[sp['موديل السيارة'],sp['فئة السيارة']].filter(Boolean).join(' ');
+      var specs=specEntries(sp);
+      document.getElementById('root').className='pdf-sheet';
+      document.getElementById('root').innerHTML='<div class="pdf-brand"><img src="assets/mzj-mark.png" alt="MZJ"><b>مجموعة محمد ذعار العجمي للسيارات</b></div><div class="pdf-content"><section class="pdf-info"><div class="pdf-title"><h2>'+esc(title)+'</h2><h3>'+esc(makeModel)+'</h3><p>'+esc(meta)+'</p></div><div class="pdf-section"><h2>المواصفات الرئيسية</h2><div class="pdf-specs">'+specs.map(function(p){return '<div class="pdf-spec"><small>'+esc(p[0])+'</small><b>'+esc(p[1])+'</b></div>';}).join('')+'</div></div></section><section class="pdf-car">'+(activeImage?'<img id="pdfCarImg" crossorigin="anonymous" src="'+esc(proxyImage(activeImage))+'" alt="car">':'<div class="pdf-loading">لا توجد صورة معتمدة</div>')+'</section></div><div class="pdf-foot"><span>'+esc((screen.screenCode||param('id')||'A1').toUpperCase())+'</span><span>تم التصدير من نظام شاشات MZJ</span></div>';
+    }
+    function waitImages(el){ var imgs=[].slice.call(el.querySelectorAll('img')); return Promise.all(imgs.map(function(img){ return new Promise(function(resolve){ if(img.complete) return resolve(); img.onload=resolve; img.onerror=resolve; }); })); }
+    async function exportPdf(){
+      var btn=document.getElementById('exportBtn'); var sheet=document.getElementById('root');
+      try{
+        btn.disabled=true; setStatus('جاري إنشاء PDF...'); await waitImages(sheet); await new Promise(function(r){setTimeout(r,250);});
+        var canvas=await html2canvas(sheet,{scale:2,useCORS:true,allowTaint:false,backgroundColor:'#f8f4f0'});
+        var img=canvas.toDataURL('image/jpeg',0.94); var jspdf=window.jspdf; var pdf=new jspdf.jsPDF('landscape','pt','a4');
+        var w=pdf.internal.pageSize.getWidth(), h=pdf.internal.pageSize.getHeight(); pdf.addImage(img,'JPEG',0,0,w,h);
+        var name=((loadedData&&loadedData.title)||'mzj-car').replace(/[\\/:*?"<>|]+/g,' ').replace(/\s+/g,' ').trim();
+        pdf.save(name+'.pdf'); setStatus('تم تجهيز PDF');
+      }catch(e){ setStatus('فشل التصدير: '+(e.message||String(e))); }
+      finally{ btn.disabled=false; }
+    }
+    load();
+  </script>
+</body>
+</html>

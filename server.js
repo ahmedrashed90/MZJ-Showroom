@@ -70,10 +70,33 @@ async function handler(req, res){
       return sendJson(res, 200, await readCar(carUrl));
     }
 
+    if(u.pathname === '/api/image-proxy'){
+      const raw = u.searchParams.get('url') || '';
+      if(!raw) return sendJson(res, 400, { ok:false, error:'missing url' });
+      const target = new URL(raw);
+      const lib = target.protocol === 'https:' ? require('https') : require('http');
+      const proxyReq = lib.get(target, {headers:{'User-Agent':'MZJ-Showroom-PDF/1.0','Accept':'image/*,*/*','Cache-Control':'no-cache'}}, proxyRes => {
+        if(proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location){
+          res.writeHead(302, {'Location':'/api/image-proxy?url='+encodeURIComponent(new URL(proxyRes.headers.location, raw).toString())});
+          res.end();
+          return;
+        }
+        res.writeHead(proxyRes.statusCode || 200, {
+          'Content-Type': proxyRes.headers['content-type'] || 'image/jpeg',
+          'Cache-Control': 'public, max-age=86400',
+          'Access-Control-Allow-Origin': '*'
+        });
+        proxyRes.pipe(res);
+      });
+      proxyReq.on('error', e => sendJson(res, 500, {ok:false,error:e.message}));
+      return;
+    }
+
     let pathname = decodeURIComponent(u.pathname);
     if(pathname === '/') pathname = '/dashboard.html';
     if(pathname === '/dashboard') pathname = '/dashboard.html';
     if(pathname === '/screen') pathname = '/screen.html';
+    if(pathname === '/pdf' || pathname === '/export') pathname = '/export.html';
 
     const safePath = path.normalize(path.join(publicDir, pathname));
     if(!safePath.startsWith(publicDir)){
