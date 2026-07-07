@@ -145,49 +145,111 @@ function addKnownColorFromText(list, text, source, imgs){
     if(c.re.test(text)) addVariationOption(list, {label:c.label, external:c.label, raw:c.label, source:source || 'taxonomy', images:imgs || []});
   });
 }
+function normalizeHex(hex){
+  hex = cleanText(hex || '').toLowerCase();
+  if(!hex) return '';
+  if(hex[0] !== '#') hex = '#'+hex;
+  if(/^#[0-9a-f]{3}$/i.test(hex)){
+    hex = '#' + hex.slice(1).split('').map(ch => ch+ch).join('');
+  }
+  return /^#[0-9a-f]{6}$/i.test(hex) ? hex : '';
+}
+function labelFromHexStrict(hex){
+  hex = normalizeHex(hex);
+  const named = COLOR_HEX_MAP[hex] || '';
+  if(named) return named;
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  if(max - min < 18){
+    if(max < 38) return 'أسود';
+    if(min > 232) return 'أبيض';
+    if(max > 190) return 'فضي';
+    return 'رمادي';
+  }
+  // لا نخمن ألوان مش موجودة كاسم صريح؛ نعرضها ككود لون فقط بدل ما نطلع أزرق/برتقالي غلط.
+  return hex;
+}
+function makeColorOptionFromHex(hex, source, images, label){
+  hex = normalizeHex(hex);
+  if(!hex) return null;
+  const cleanLabel = validColorName(label || '') || labelFromHexStrict(hex);
+  return { token: hex, label: cleanLabel, external: cleanLabel, raw: cleanLabel, hex, source: source || 'site-swatch', images: images || [] };
+}
+function addStrictColor(list, opt){
+  if(!opt) return;
+  let hex = normalizeHex(opt.hex || '');
+  let label = validColorName(opt.label || opt.external || opt.raw || '') || '';
+  if(!hex && !label) return;
+  if(hex && !label) label = labelFromHexStrict(hex);
+  if(!hex && label){
+    const token = normalizeColorToken(label);
+    if(!token) return;
+    if(list.some(x => x.token === token || x.label === label)) return;
+    list.push({ token, label, external: label, raw: label, hex:'', source: opt.source || 'site-taxonomy', images: unique(opt.images || []) });
+    return;
+  }
+  if(list.some(x => x.hex === hex || x.token === hex)){
+    const found = list.find(x => x.hex === hex || x.token === hex);
+    found.images = unique([...(found.images || []), ...(opt.images || [])]);
+    return;
+  }
+  list.push({ token: hex, label, external: label, raw: label, hex, source: opt.source || 'site-swatch', images: unique(opt.images || []) });
+}
 function extractWpTaxonomyColorsFromHtml(html, baseUrl){
   const out=[];
   if(!html) return out;
   const decoded = decodeMaybe(html);
+
+  // المصدر المعتمد فقط: بلوك ألوان السيارة الحقيقي أو مفاتيح التاكسونومي المطلوبة من الموقع.
   const keys = [
-    'car_exterior_color','exterior-color','exterior_color','الألوان الخارجية','الالوان الخارجية','اللون الخارجي',
-    'car_interior_color','interior-color','interior_color','الألوان الداخلية','الالوان الداخلية','اللون الداخلي'
+    'الألوان المتاحة','الالوان المتاحة','الألوان الخارجية','الالوان الخارجية','اللون الخارجي',
+    'car_exterior_color','exterior-color','exterior_color',
+    'الألوان الداخلية','الالوان الداخلية','اللون الداخلي','car_interior_color','interior-color','interior_color',
+    'Color Variations','color variations'
   ];
-  // Exact WP/ACF taxonomy keys: take only known color words near these keys, not random UI colors.
+
+  const sections=[];
   keys.forEach(key=>{
     const re = new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'ig');
     let m;
     while((m = re.exec(decoded))){
-      const start = Math.max(0, m.index - 900);
-      const end = Math.min(decoded.length, m.index + 2200);
-      const frag = decoded.slice(start, end);
-      const imgs = extractImagesFromFragment(frag, baseUrl || 'https://mzjcars.com');
-      addKnownColorFromText(out, frag, 'wp-taxonomy', imgs);
-      // Common forms: name: "فضي", label: "أبيض", slug: white
-      let lm; const labelRe = /(?:name|label|title|value|term|slug)["'\s:=]+["']?([^"'<>\n,;]{1,45})/ig;
-      while((lm = labelRe.exec(frag))){
-        const v = validColorName(lm[1]);
-        if(v) addVariationOption(out, {label:v, external:v, raw:v, source:'wp-taxonomy', images:imgs});
-      }
+      sections.push(decoded.slice(Math.max(0, m.index - 900), Math.min(decoded.length, m.index + 4500)));
     }
   });
-  // Admin/ACF-like visible text: "فضي (#dbdbdb)" or "أبيض (#ffffff)"
-  let mm; const namedHexRe = /(أبيض|ابيض|أسود|اسود|فضي|رمادي|رصاصي|أحمر|احمر|أزرق|ازرق|بني|موكا|بيج|ذهبي|أخضر|اخضر|برتقالي|white|black|silver|gray|grey|red|blue|brown|mocha|beige|gold|green|orange)\s*\(?\s*(#[0-9a-fA-F]{3,6})?\s*\)?/ig;
-  while((mm = namedHexRe.exec(decoded))){
-    const v = validColorName(mm[1]);
-    if(v) addVariationOption(out, {label:v, external:v, raw:v, hex:mm[2]||'', source:'site-color-text', images:[]});
-  }
-  // Hexes very close to color/taxonomy blocks only, mapped by known hex table.
-  const blockKeys = /(Color Variations|color variations|الألوان المتاحة|الالوان المتاحة|اللون الخارجي|الألوان الخارجية|car_exterior_color|exterior-color)/ig;
-  while((mm = blockKeys.exec(decoded))){
-    const frag = decoded.slice(Math.max(0, mm.index-500), Math.min(decoded.length, mm.index+2500));
-    let hm; const hre = /#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b/g;
+  if(!sections.length) return out;
+
+  sections.forEach(frag=>{
     const imgs = extractImagesFromFragment(frag, baseUrl || 'https://mzjcars.com');
-    while((hm = hre.exec(frag))){
-      const label = colorFromHex(hm[0]);
-      if(label) addVariationOption(out, {label, external:label, raw:label, hex:hm[0], source:'site-hex', images:imgs});
+
+    // Swatches: style="background-color:#dbdbdb" / data-color="#fff" / data-value="#000"
+    const hexAttrRe = /(?:background(?:-color)?\s*:\s*|data-(?:color|bg|hex|value)=['\"]|value=['\"]|title=['\"][^'\"]{0,40}|aria-label=['\"][^'\"]{0,40})(#[0-9a-fA-F]{3,6})/ig;
+    let hm;
+    while((hm = hexAttrRe.exec(frag))){
+      const around = frag.slice(Math.max(0, hm.index - 160), Math.min(frag.length, hm.index + 220));
+      const label = extractLabelNear(around, hm[1]);
+      addStrictColor(out, makeColorOptionFromHex(hm[1], 'site-swatch', imgs, label));
     }
-  }
+
+    // بعض القوالب تكتب اللون كـ "فضي (#dbdbdb)" أو "أبيض (#ffffff)".
+    const namedHexRe = /(أبيض|ابيض|أسود|اسود|فضي|رمادي|رصاصي|بني|موكا|بيج|ذهبي)\s*\(?\s*(#[0-9a-fA-F]{3,6})?\s*\)?/ig;
+    let nm;
+    while((nm = namedHexRe.exec(frag))){
+      const label = validColorName(nm[1]);
+      if(label) addStrictColor(out, { label, hex:nm[2] || '', source:'site-taxonomy', images: imgs });
+    }
+
+    // مفاتيح التاكسونومي نفسها لما تكون مخزنة كنص.
+    const valueRe = /(?:car_exterior_color|exterior-color|exterior_color|car_interior_color|interior-color|interior_color|اللون الخارجي|الألوان الخارجية|اللون الداخلي|الألوان الداخلية)[^\n<>]{0,220}/ig;
+    let vm;
+    while((vm = valueRe.exec(frag))){
+      const txt = decodeMaybe(vm[0]);
+      ['أبيض','ابيض','أسود','اسود','فضي','رمادي','رصاصي','بني','موكا','بيج','ذهبي'].forEach(word=>{
+        if(new RegExp(word,'i').test(txt)) addStrictColor(out, { label: word, source:'site-taxonomy', images: imgs });
+      });
+    }
+  });
+
   return out;
 }
 
@@ -301,14 +363,14 @@ function extractColorsFromStock(raw, specs){
 }
 function buildAvailableSliderColors(stockCar, html){
   const out = [];
-  // 1) المصدر الأساسي: Taxonomies/Attributes الحقيقية من الموقع
-  // car_exterior_color / exterior-color / car_interior_color / interior-color
-  extractWpTaxonomyColorsFromHtml(html || '', stockCar.carUrl || '').forEach(c => addVariationOption(out, c));
-  // 2) Color Variations من الصفحة، لكن بعد فلترة صارمة للألوان فقط
-  extractColorVariationsFromHtml(html || '', stockCar.carUrl || '').forEach(c => addVariationOption(out, c));
-  // 3) fallback من endpoint الاستوك لو كان بيرجع اللون
-  extractColorsFromStock(stockCar.rawStock || {}, stockCar.specs || {}).forEach(c => addVariationOption(out, {label:c.raw || c.label, source:c.source || 'stock'}));
-  // ممنوع نضيف ألوان عشوائية من هيدر/أزرار/أكواد CSS؛ القائمة هنا ألوان السيارة فقط.
+  // v28: لا نسحب ألوان عامة من CSS أو أزرار الصفحة.
+  // المصدر الوحيد الأساسي هو بلوك الألوان الحقيقي ومفاتيح التاكسونومي:
+  // car_exterior_color / exterior-color / car_interior_color / interior-color.
+  extractWpTaxonomyColorsFromHtml(html || '', stockCar.carUrl || '').forEach(c => addStrictColor(out, c));
+
+  // fallback محدود من endpoint الاستوك فقط لو كان بيرجع لون صريح.
+  extractColorsFromStock(stockCar.rawStock || {}, stockCar.specs || {}).forEach(c => addStrictColor(out, {label:c.raw || c.label, source:c.source || 'stock'}));
+
   return out;
 }
 
@@ -341,7 +403,7 @@ function stockItemToCar(item){
   put('قاعدة العجلات (مم)', item.mm_wheel);
   put('حجم الشنطة', item.back_size);
   return {
-    parserVersion: 'v27-real-wp-colors',
+    parserVersion: 'v28-site-taxonomy-colors',
     source: 'stock',
     id: item.id || '',
     carUrl: item.url || item.link || '',
@@ -457,7 +519,7 @@ function mergeCar(stockCar, details, pageHtml){
     : (ext || inn ? [{ external: ext || 'لون خارجي', internal: inn || '', token: normalizeColorToken(ext), raw: ext || '', source:'stock-spec', images:[] }] : []);
   return Object.assign({}, stockCar, {
     source: 'stock + car-page-js',
-    parserVersion: 'v27-real-wp-colors',
+    parserVersion: 'v28-site-taxonomy-colors',
     images: images.length ? images : stockCar.images,
     featureGroups,
     colors,
