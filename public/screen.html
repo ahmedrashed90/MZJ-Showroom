@@ -165,6 +165,8 @@
 
     function colorCss(label){
       label = String(label||'').toLowerCase();
+      var hex = label.match(/#[0-9a-f]{3,6}\b/i);
+      if(hex) return hex[0];
       if(/أسود|اسود|black/.test(label)) return '#111';
       if(/أبيض|ابيض|white/.test(label)) return '#f8f8f8';
       if(/فضي|silver/.test(label)) return '#c8c8c8';
@@ -176,6 +178,18 @@
       return '#d9d0c8';
     }
 
+    function imagesForSiteColor(color){
+      if(!data || !color || color === 'all') return [];
+      var cols = [].concat(data.colors || [], data.availableSliderColors || []);
+      var hit = null;
+      cols.some(function(c){
+        var vals = [c.token, c.hex, c.raw, c.external, c.label].filter(Boolean).map(function(x){return String(x).toLowerCase();});
+        if(vals.indexOf(String(color).toLowerCase()) >= 0){ hit = c; return true; }
+        return false;
+      });
+      return hit && Array.isArray(hit.images) ? uniq(hit.images).filter(function(u){ return !badImage(u) && !badLoaded[u]; }) : [];
+    }
+
     function images(){
       var base = uniq((data && data.images) || []).filter(function(u){ return !badImage(u) && !badLoaded[u]; });
       var arr = base.slice();
@@ -184,8 +198,12 @@
       else {
         var color = screenOptions.imageFilterColor || 'all';
         if(color && color !== 'all'){
-          var filtered = base.filter(function(u){ return colorMatch(u, color); });
-          arr = filtered.length ? filtered : base;
+          var siteImages = imagesForSiteColor(color);
+          if(siteImages.length) arr = siteImages;
+          else {
+            var filtered = base.filter(function(u){ return colorMatch(u, color); });
+            arr = filtered.length ? filtered : base;
+          }
         }
       }
       return arr;
