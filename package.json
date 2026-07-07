@@ -1,9 +1,0 @@
-{
-  "name": "mzj-showroom-screens-vercel",
-  "version": "19.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "vercel dev"
-  },
-  "dependencies": {}
-}
