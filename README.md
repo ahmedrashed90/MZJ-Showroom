@@ -1,33 +1,8 @@
-# MZJ Showroom Screens v20 - Vercel Fix
+# MZJ Showroom Screens v21 - Vercel Ready
 
-نسخة مخصصة للنشر على Vercel بعد خطأ: No entrypoint found.
-
-## روابط التشغيل بعد النشر
-
-- `/dashboard`
-- `/screen?id=A1`
-- `/screen?id=A2`
-
-## ملاحظات مهمة
-
-- ارفع محتويات هذا الفولدر مباشرة في جذر GitHub repo، لا ترفع الفولدر نفسه كفولدر داخلي.
-- الملفات الأساسية في الجذر:
-  - `server.js`
-  - `index.js`
-  - `package.json`
-  - `vercel.json`
-  - `api/`
-  - `public/`
-
-## تشغيل محلي
-
-```bash
-npm start
-```
-
-ثم افتح:
-
-```text
-http://localhost:3000/dashboard
-http://localhost:3000/screen?id=A1
-```
+- مبني على v20.
+- تعديل عرض المواصفات: كل سلايد يعرض 14 مواصفة فقط.
+- 7 مواصفات في العمود اليمين + 7 مواصفات في العمود الشمال.
+- إذا زادت مواصفات القسم عن 14، يتم عرض الباقي في سلايد تالٍ بنفس عنوان القسم بدون أرقام مثل 2 أو 3.
+- مناسب للشاشات الصغيرة حتى لا تختفي المواصفات أسفل الشاشة.
+- يدعم روابط Vercel النظيفة: `/dashboard` و `/screen?id=A1`.
