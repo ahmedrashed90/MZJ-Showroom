@@ -409,7 +409,7 @@ function stockItemToCar(item){
   put('قاعدة العجلات (مم)', item.mm_wheel);
   put('حجم الشنطة', item.back_size);
   return {
-    parserVersion: 'v29-color-variation-images',
+    parserVersion: 'v31-slider-color-images',
     source: 'stock',
     id: item.id || '',
     carUrl: item.url || item.link || '',
@@ -508,7 +508,7 @@ function extractImages(html, baseUrl, fallback){
   const urlRe = /https?:\\?\/\\?\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'<>]*)?/ig;
   while((m = urlRe.exec(html))) add(m[0].replace(/\\\//g,'/'));
 
-  return unique(out).slice(0, 18);
+  return unique(out).slice(0, 80);
 }
 function mergeCar(stockCar, details, pageHtml){
   const featureGroups = {
@@ -525,7 +525,7 @@ function mergeCar(stockCar, details, pageHtml){
     : (ext || inn ? [{ external: ext || 'لون خارجي', internal: inn || '', token: normalizeColorToken(ext), raw: ext || '', source:'stock-spec', images:[] }] : []);
   return Object.assign({}, stockCar, {
     source: 'stock + car-page-js',
-    parserVersion: 'v29-color-variation-images',
+    parserVersion: 'v31-slider-color-images',
     images: images.length ? images : stockCar.images,
     featureGroups,
     colors,

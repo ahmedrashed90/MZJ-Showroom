@@ -192,22 +192,24 @@
 
     function images(){
       var base = uniq((data && data.images) || []).filter(function(u){ return !badImage(u) && !badLoaded[u]; });
-      var arr = base.slice();
       var selected = Array.isArray(screenOptions.selectedImages) ? screenOptions.selectedImages.filter(Boolean) : [];
-      if(selected.length){ arr = arr.filter(function(u){ return selected.indexOf(u) >= 0; }); }
-      else {
-        var color = screenOptions.imageFilterColor || 'all';
-        if(color && color !== 'all'){
-          var siteImages = imagesForSiteColor(color);
-          if(siteImages.length) arr = siteImages;
-          else {
-            var hasColorData = data && ((data.availableSliderColors||[]).length || (data.colors||[]).length);
-            var filtered = base.filter(function(u){ return colorMatch(u, color); });
-            arr = filtered.length ? filtered : (hasColorData ? [] : base);
-          }
-        }
+
+      // لو الداش بورد حفظ صور لون محدد، اعرضها مباشرة في سلايدر الصور.
+      // ما نفلترهاش جوه base لأن base ممكن يكون ناقص أو أول 18 صورة بس.
+      if(selected.length){
+        var manual = uniq(selected).filter(function(u){ return !badImage(u) && !badLoaded[u]; });
+        if(manual.length) return manual;
       }
-      return arr;
+
+      var color = screenOptions.imageFilterColor || 'all';
+      if(color && color !== 'all'){
+        var siteImages = imagesForSiteColor(color);
+        if(siteImages.length) return siteImages;
+        var hasColorData = data && ((data.availableSliderColors||[]).length || (data.colors||[]).length);
+        var filtered = base.filter(function(u){ return colorMatch(u, color); });
+        return filtered.length ? filtered : (hasColorData ? [] : base);
+      }
+      return base;
     }
 
     function currentImage(){
@@ -233,7 +235,7 @@
       addFeaturePages('المواصفات الداخلية', 'تجهيزات المقصورة', fg.interior || []);
       addFeaturePages('المواصفات الخارجية', 'التجهيز الخارجي', fg.exterior || []);
       addFeaturePages('مواصفات الأمان', 'أنظمة السلامة', fg.safety || []);
-      if((cols||[]).length || sp['اللون الخارجي'] || sp['اللون الداخلي']) panels.push({title:'الألوان المتاحة', sub:'حسب بيانات السيارة', kind:'colors', items:cols});
+      // الألوان تستخدم كفلتر لسلايدر الصور من الداش بورد فقط، ولا تظهر كسلايد بعد المواصفات.
       if(!panels.length) panels.push({title:'بيانات السيارة', sub:'لا توجد بيانات كافية', kind:'empty', items:[]});
     }
 
