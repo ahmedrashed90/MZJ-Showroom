@@ -21,3 +21,9 @@
 ارفع محتويات فولدر هذه النسخة إلى GitHub ثم اعمل Redeploy على Vercel.
 
 بعد النشر افتح الداش بورد، اختر السيارة، اضغط `الصور/اللون` ثم `تحميل الصور` لتظهر ألوان السيارة الفعلية من الموقع.
+
+
+## v27
+- Fixed real color extraction: reads actual WordPress car color taxonomies/attributes (`car_exterior_color`, `exterior-color`, `car_interior_color`, `interior-color`).
+- Removed noisy CSS/UI color detection from the dashboard dropdown.
+- Color dropdown now shows clean vehicle colors only.

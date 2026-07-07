@@ -103,6 +103,94 @@ function extractKnownColors(text){
   return list;
 }
 
+function decodeMaybe(s){
+  s = String(s || '').replace(/\\u0026/g,'&').replace(/\\\//g,'/');
+  for(let i=0;i<3;i++){
+    try{
+      const d = decodeURIComponent(s);
+      if(d === s) break;
+      s = d;
+    }catch(e){ break; }
+  }
+  return cleanText(s);
+}
+const COLOR_HEX_MAP = {
+  '#fff':'أبيض', '#ffffff':'أبيض', '#f7f7f7':'أبيض', '#f8f8f8':'أبيض', '#fafafa':'أبيض', '#f5f5f5':'أبيض',
+  '#000':'أسود', '#000000':'أسود', '#111':'أسود', '#111111':'أسود', '#1a1a1a':'أسود', '#222222':'أسود',
+  '#dbdbdb':'فضي', '#dcdcdc':'فضي', '#dddddd':'فضي', '#c0c0c0':'فضي', '#bfbfbf':'فضي', '#cccccc':'فضي', '#silver':'فضي',
+  '#808080':'رمادي', '#888888':'رمادي', '#999999':'رمادي', '#a0a0a0':'رمادي', '#9b9b9b':'رمادي', '#777777':'رمادي',
+  '#ff0000':'أحمر', '#f00':'أحمر', '#d00000':'أحمر', '#cc0000':'أحمر',
+  '#0000ff':'أزرق', '#00f':'أزرق', '#0047ab':'أزرق', '#003399':'أزرق',
+  '#8b4513':'بني', '#964b00':'بني', '#a0522d':'بني', '#d2b48c':'بيج', '#f5f5dc':'بيج',
+  '#ffd700':'ذهبي', '#daa520':'ذهبي', '#008000':'أخضر', '#00ff00':'أخضر'
+};
+function colorFromHex(hex){
+  hex = cleanText(hex || '').toLowerCase();
+  if(hex && hex[0] !== '#') hex = '#'+hex;
+  return COLOR_HEX_MAP[hex] || '';
+}
+function validColorName(label){
+  label = decodeMaybe(label);
+  if(!label) return '';
+  if(/%[0-9a-f]{2}/i.test(label)) return '';
+  if(/close|woocommerce|product|variation|gallery|image|صورة|صور|select|option|button|undefined|null|محفوظ|كل الألوان|اللون المحفوظ/i.test(label)) return '';
+  if(label.length > 45) return '';
+  for(const c of COLOR_DEFS){ if(c.re.test(label)) return c.label; }
+  return '';
+}
+function addKnownColorFromText(list, text, source, imgs){
+  text = decodeMaybe(text);
+  if(!text) return;
+  COLOR_DEFS.forEach(c=>{
+    if(c.re.test(text)) addVariationOption(list, {label:c.label, external:c.label, raw:c.label, source:source || 'taxonomy', images:imgs || []});
+  });
+}
+function extractWpTaxonomyColorsFromHtml(html, baseUrl){
+  const out=[];
+  if(!html) return out;
+  const decoded = decodeMaybe(html);
+  const keys = [
+    'car_exterior_color','exterior-color','exterior_color','الألوان الخارجية','الالوان الخارجية','اللون الخارجي',
+    'car_interior_color','interior-color','interior_color','الألوان الداخلية','الالوان الداخلية','اللون الداخلي'
+  ];
+  // Exact WP/ACF taxonomy keys: take only known color words near these keys, not random UI colors.
+  keys.forEach(key=>{
+    const re = new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'ig');
+    let m;
+    while((m = re.exec(decoded))){
+      const start = Math.max(0, m.index - 900);
+      const end = Math.min(decoded.length, m.index + 2200);
+      const frag = decoded.slice(start, end);
+      const imgs = extractImagesFromFragment(frag, baseUrl || 'https://mzjcars.com');
+      addKnownColorFromText(out, frag, 'wp-taxonomy', imgs);
+      // Common forms: name: "فضي", label: "أبيض", slug: white
+      let lm; const labelRe = /(?:name|label|title|value|term|slug)["'\s:=]+["']?([^"'<>\n,;]{1,45})/ig;
+      while((lm = labelRe.exec(frag))){
+        const v = validColorName(lm[1]);
+        if(v) addVariationOption(out, {label:v, external:v, raw:v, source:'wp-taxonomy', images:imgs});
+      }
+    }
+  });
+  // Admin/ACF-like visible text: "فضي (#dbdbdb)" or "أبيض (#ffffff)"
+  let mm; const namedHexRe = /(أبيض|ابيض|أسود|اسود|فضي|رمادي|رصاصي|أحمر|احمر|أزرق|ازرق|بني|موكا|بيج|ذهبي|أخضر|اخضر|برتقالي|white|black|silver|gray|grey|red|blue|brown|mocha|beige|gold|green|orange)\s*\(?\s*(#[0-9a-fA-F]{3,6})?\s*\)?/ig;
+  while((mm = namedHexRe.exec(decoded))){
+    const v = validColorName(mm[1]);
+    if(v) addVariationOption(out, {label:v, external:v, raw:v, hex:mm[2]||'', source:'site-color-text', images:[]});
+  }
+  // Hexes very close to color/taxonomy blocks only, mapped by known hex table.
+  const blockKeys = /(Color Variations|color variations|الألوان المتاحة|الالوان المتاحة|اللون الخارجي|الألوان الخارجية|car_exterior_color|exterior-color)/ig;
+  while((mm = blockKeys.exec(decoded))){
+    const frag = decoded.slice(Math.max(0, mm.index-500), Math.min(decoded.length, mm.index+2500));
+    let hm; const hre = /#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b/g;
+    const imgs = extractImagesFromFragment(frag, baseUrl || 'https://mzjcars.com');
+    while((hm = hre.exec(frag))){
+      const label = colorFromHex(hm[0]);
+      if(label) addVariationOption(out, {label, external:label, raw:label, hex:hm[0], source:'site-hex', images:imgs});
+    }
+  }
+  return out;
+}
+
 function htmlAttrDecode(s){ return cleanText(String(s||'').replace(/\\u0026/g,'&').replace(/\\\//g,'/')); }
 function extractImagesFromFragment(fragment, baseUrl){
   const imgs=[]; const add=v=>{
@@ -121,35 +209,39 @@ function extractImagesFromFragment(fragment, baseUrl){
   return unique(imgs);
 }
 function extractLabelNear(fragment, hex){
+  const byHex = colorFromHex(hex);
+  if(byHex) return byHex;
   const attrs = ['aria-label','title','data-title','data-name','data-color','data-color-name','data-value','alt','value'];
   for(const a of attrs){
     const re = new RegExp(a + `=([\"'])([^\"']{1,120})\\1`, 'i');
     const m = fragment.match(re);
-    if(m){ const t=cleanText(m[2]); if(t && !/^#?[0-9a-f]{3,6}$/i.test(t) && !/woocommerce|product|gallery|image|صورة/i.test(t)) return t; }
+    if(m){ const v = validColorName(m[2]); if(v) return v; }
   }
-  const ar = fragment.match(/(أبيض|ابيض|أسود|اسود|فضي|رمادي|رصاصي|أحمر|احمر|أزرق|ازرق|بني|موكا|بيج|ذهبي|أخضر|اخضر|برتقالي)/i);
-  if(ar) return ar[1];
-  const en = fragment.match(/(white|black|silver|gray|grey|red|blue|brown|mocha|beige|gold|green|orange|pearl|snow)/i);
-  if(en) return en[1];
-  return hex || '';
+  const v = validColorName(fragment);
+  return v || '';
 }
 function addVariationOption(list, opt){
   if(!opt) return;
-  let label = cleanText(opt.label || opt.external || opt.raw || opt.hex || '');
+  let label = decodeMaybe(opt.label || opt.external || opt.raw || '');
   let hex = cleanText(opt.hex || '');
   if(hex && hex[0] !== '#') hex = '#'+hex;
   if(hex && !/^#[0-9a-f]{3,6}$/i.test(hex)) hex='';
-  const token = hex ? hex.toLowerCase() : normalizeColorToken(label);
+  const hexLabel = colorFromHex(hex);
+  const valid = validColorName(label) || hexLabel;
+  if(!valid) return;
+  label = valid;
+  const token = normalizeColorToken(label) || (hex ? hex.toLowerCase() : '');
   if(!token) return;
   const images = unique(opt.images || []);
-  const found = list.find(x => x.token === token || (hex && x.hex === hex.toLowerCase()) || (label && x.raw === label));
+  const found = list.find(x => x.token === token || (hex && x.hex === hex.toLowerCase()) || x.external === label || x.raw === label);
   if(found){
     found.images = unique([...(found.images||[]), ...images]);
     if(!found.hex && hex) found.hex = hex.toLowerCase();
-    if(!found.raw && label) found.raw = label;
+    if(!found.raw) found.raw = label;
+    if(!found.external) found.external = label;
     return;
   }
-  list.push({ token, label: colorLabelFromToken(token, label), external: label || colorLabelFromToken(token, token), raw: label, hex: hex ? hex.toLowerCase() : '', source: opt.source || 'site', images });
+  list.push({ token, label, external: label, raw: label, hex: hex ? hex.toLowerCase() : '', source: opt.source || 'site', images });
 }
 function extractColorVariationsFromHtml(html, baseUrl){
   const out=[];
@@ -209,13 +301,17 @@ function extractColorsFromStock(raw, specs){
 }
 function buildAvailableSliderColors(stockCar, html){
   const out = [];
-  // 1) الألوان الفعلية/الصور من صفحة السيارة نفسها - Color Variations
+  // 1) المصدر الأساسي: Taxonomies/Attributes الحقيقية من الموقع
+  // car_exterior_color / exterior-color / car_interior_color / interior-color
+  extractWpTaxonomyColorsFromHtml(html || '', stockCar.carUrl || '').forEach(c => addVariationOption(out, c));
+  // 2) Color Variations من الصفحة، لكن بعد فلترة صارمة للألوان فقط
   extractColorVariationsFromHtml(html || '', stockCar.carUrl || '').forEach(c => addVariationOption(out, c));
-  // 2) fallback من بيانات الاستوك/المواصفات لو صفحة السيارة لم تعرض variations بشكل واضح
+  // 3) fallback من endpoint الاستوك لو كان بيرجع اللون
   extractColorsFromStock(stockCar.rawStock || {}, stockCar.specs || {}).forEach(c => addVariationOption(out, {label:c.raw || c.label, source:c.source || 'stock'}));
-  extractColorsFromHtml(html || '').forEach(c => addVariationOption(out, {label:c.raw || c.label, source:c.source || 'html'}));
+  // ممنوع نضيف ألوان عشوائية من هيدر/أزرار/أكواد CSS؛ القائمة هنا ألوان السيارة فقط.
   return out;
 }
+
 
 function stockItemToCar(item){
   const specs = {};
@@ -245,7 +341,7 @@ function stockItemToCar(item){
   put('قاعدة العجلات (مم)', item.mm_wheel);
   put('حجم الشنطة', item.back_size);
   return {
-    parserVersion: 'v11-fixed-summary-specs',
+    parserVersion: 'v27-real-wp-colors',
     source: 'stock',
     id: item.id || '',
     carUrl: item.url || item.link || '',
@@ -361,7 +457,7 @@ function mergeCar(stockCar, details, pageHtml){
     : (ext || inn ? [{ external: ext || 'لون خارجي', internal: inn || '', token: normalizeColorToken(ext), raw: ext || '', source:'stock-spec', images:[] }] : []);
   return Object.assign({}, stockCar, {
     source: 'stock + car-page-js',
-    parserVersion: 'v11-fixed-summary-specs',
+    parserVersion: 'v27-real-wp-colors',
     images: images.length ? images : stockCar.images,
     featureGroups,
     colors,
