@@ -62,7 +62,7 @@
     var touchX = 0, touchY = 0, lastTap = 0;
     var badLoaded = {};
     var displaySettings = {featureFontSize:18, headerPosition:'right'};
-    var screenOptions = {imageFilterColor:'all', selectedImages:[]};
+    var screenOptions = {imageFilterColor:'all', selectedImages:[], sliderImages:[], sliderMode:'all'};
 
     function applyDisplaySettings(){
       var fs = Math.max(12, Math.min(26, parseInt(displaySettings.featureFontSize || 18, 10)));
@@ -134,6 +134,8 @@
         var s = doc.data();
         screenOptions.imageFilterColor = s.imageFilterColor || 'all';
         screenOptions.selectedImages = Array.isArray(s.selectedImages) ? s.selectedImages : [];
+        screenOptions.sliderImages = Array.isArray(s.sliderImages) ? s.sliderImages : screenOptions.selectedImages;
+        screenOptions.sliderMode = s.sliderMode || (screenOptions.sliderImages.length ? 'manual' : 'all');
         if(s.carUrl !== lastCarUrl || !data){
           lastCarUrl = s.carUrl;
           loadCar(s.carUrl);
@@ -192,10 +194,11 @@
 
     function images(){
       var base = uniq((data && data.images) || []).filter(function(u){ return !badImage(u) && !badLoaded[u]; });
-      var selected = Array.isArray(screenOptions.selectedImages) ? screenOptions.selectedImages.filter(Boolean) : [];
+      var selected = Array.isArray(screenOptions.sliderImages) ? screenOptions.sliderImages.filter(Boolean) : [];
+      if(!selected.length && Array.isArray(screenOptions.selectedImages)) selected = screenOptions.selectedImages.filter(Boolean);
 
-      // لو الداش بورد حفظ صور لون محدد، اعرضها مباشرة في سلايدر الصور.
-      // ما نفلترهاش جوه base لأن base ممكن يكون ناقص أو أول 18 صورة بس.
+      // الصور المختارة من الداش بورد هي المصدر الأول لسلايدر الصور.
+      // نعرضها كما هي حتى لو ليست ضمن images العامة للسيارة.
       if(selected.length){
         var manual = uniq(selected).filter(function(u){ return !badImage(u) && !badLoaded[u]; });
         if(manual.length) return manual;
