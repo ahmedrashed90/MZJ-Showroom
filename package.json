@@ -1,0 +1,11 @@
+{
+  "name": "mzj-showroom-screens-vercel",
+  "version": "20.0.0",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {}
+}
