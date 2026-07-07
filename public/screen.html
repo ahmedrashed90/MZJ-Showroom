@@ -247,6 +247,30 @@
       return '<div class="v11-spec-grid">'+items.map(function(x){ return '<div class="v11-spec"><small>'+esc(x[0])+'</small><b>'+esc(x[1])+'</b></div>'; }).join('')+'</div>';
     }
 
+    function hasPanelTitle(title){
+      return panels.some(function(p){ return p.title === title; });
+    }
+
+    function jumpToPanelTitle(title){
+      var idx = panels.findIndex(function(p){ return p.title === title; });
+      if(idx < 0) return;
+      panelIndex = idx;
+      updateSpecsOnly();
+      scheduleSpecAuto();
+    }
+
+    function sectionTabs(activeTitle){
+      var tabs = [
+        'المواصفات الداخلية',
+        'المواصفات الخارجية',
+        'مواصفات الأمان'
+      ].filter(hasPanelTitle);
+      if(!tabs.length) return '';
+      return '<div class="v11-section-tabs">'+tabs.map(function(t){
+        return '<button type="button" class="v11-tab '+(activeTitle===t?'active':'')+'" data-title="'+esc(t)+'">'+esc(t)+'</button>';
+      }).join('')+'</div>';
+    }
+
     function featureCell(x){ return '<div class="v11-feature"><i>✓</i><span>'+esc(x)+'</span></div>'; }
 
     function itemGrid(items){
@@ -271,7 +295,7 @@
       else if(p.kind === 'features') body = itemGrid(p.items);
       else if(p.kind === 'colors') body = colorsHtml(p.items, data.specs||{});
       else body = '<div class="v11-empty">لا توجد بيانات كافية لهذه السيارة.</div>';
-      return '<section class="v11-dynamic"><div class="v11-chip">'+esc(p.sub||'')+'</div><h2>'+esc(p.title)+'</h2>'+body+'</section>';
+      return '<section class="v11-dynamic">'+sectionTabs(p.title)+'<div class="v11-chip">'+esc(p.sub||'')+'</div><h2>'+esc(p.title)+'</h2>'+body+'</section>';
     }
 
     function summaryHtml(){
@@ -345,7 +369,11 @@
 
     function bind(){
       var root = document.getElementById('root');
-      root.addEventListener('click', function(){ var now=Date.now(); if(now-lastTap<250) return; lastTap=now; nextPanel(1); });
+      root.addEventListener('click', function(e){
+        var tab = e.target && e.target.closest ? e.target.closest('.v11-tab') : null;
+        if(tab){ e.preventDefault(); e.stopPropagation(); jumpToPanelTitle(tab.getAttribute('data-title') || ''); return; }
+        var now=Date.now(); if(now-lastTap<250) return; lastTap=now; nextPanel(1);
+      });
       root.addEventListener('touchstart', function(e){ if(!e.touches[0]) return; touchX=e.touches[0].clientX; touchY=e.touches[0].clientY; }, {passive:true});
       root.addEventListener('touchend', function(e){ if(!e.changedTouches[0]) return; var dx=e.changedTouches[0].clientX-touchX, dy=e.changedTouches[0].clientY-touchY; if(Math.abs(dx)>55 && Math.abs(dx)>Math.abs(dy)) nextPanel(dx<0?1:-1); }, {passive:true});
       document.addEventListener('keydown', function(e){ if(e.key==='ArrowLeft') nextPanel(1); if(e.key==='ArrowRight') nextPanel(-1); });

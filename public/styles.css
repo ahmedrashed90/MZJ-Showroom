@@ -180,3 +180,32 @@ body.screen-v11{--mzj-feature-font-size:18px;}
 }
 .image-hint{grid-column:1/-1;background:#fff8ef;border:1px dashed #d8c7bd;border-radius:12px;padding:10px 12px;color:#6b5148;font-size:13px;font-weight:800;text-align:right}
 .color-select option{font-weight:800}
+
+/* v34 - screen section buttons */
+.screen-v11 .v11-section-tabs{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-bottom:10px;
+  direction:rtl;
+}
+.screen-v11 .v11-tab{
+  border:1px solid rgba(188,143,116,.35);
+  background:rgba(255,255,255,.075);
+  color:#f4e6de;
+  border-radius:14px;
+  padding:9px 10px;
+  font-family:inherit;
+  font-weight:900;
+  font-size:clamp(12px,.82vw,15px);
+  cursor:pointer;
+  box-shadow:none;
+}
+.screen-v11 .v11-tab.active{
+  background:linear-gradient(135deg,#bc8f74,#e7b798);
+  color:#241512;
+  border-color:#e7b798;
+}
+@media(max-width:900px){
+  .screen-v11 .v11-section-tabs{grid-template-columns:1fr;}
+}
