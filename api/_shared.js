@@ -2,7 +2,8 @@ const http = require('http');
 const https = require('https');
 const { URL } = require('url');
 
-const STOCK_URL = 'https://mzjcars.com/wp-json/mzsm/v1/stock';
+const STOCK_URL = process.env.MZJ_CARS_ENDPOINT || 'https://mzjcars.com/wp-json/mzj-platform/v2/cars';
+const PARSER_VERSION = 'v32-mzj-platform-v2';
 const cache = { stock: null, stockAt: 0, cars: new Map() };
 const STOCK_TTL = 2 * 60 * 1000;
 const CAR_TTL = 10 * 60 * 1000;
@@ -16,12 +17,17 @@ function fetchText(url, timeout=20000){
   return new Promise((resolve, reject)=>{
     const u = new URL(url);
     const lib = u.protocol === 'https:' ? https : http;
+    const headers = {
+      'User-Agent': 'MZJ-Showroom-Screens/32.0',
+      'Accept': 'text/html,application/json,*/*',
+      'Cache-Control': 'no-cache'
+    };
+    const bridgeKey = process.env.MZJ_BRIDGE_KEY || process.env.MZJ_CARS_API_KEY || process.env.WORDPRESS_CARS_API_KEY || '';
+    if(bridgeKey && /\/wp-json\/mzj-platform\//i.test(u.pathname)){
+      headers['X-MZJ-Bridge-Key'] = bridgeKey;
+    }
     const req = lib.get(u, {
-      headers: {
-        'User-Agent': 'MZJ-Showroom-Screens/10.0',
-        'Accept': 'text/html,application/json,*/*',
-        'Cache-Control': 'no-cache'
-      },
+      headers,
       timeout
     }, r=>{
       let data='';
@@ -381,56 +387,273 @@ function buildAvailableSliderColors(stockCar, html){
 }
 
 
-function stockItemToCar(item){
-  const specs = {};
-  const put = (label, value)=>{ value = cleanText(value); if(value) specs[label] = value; };
-  put('السعر', item.price || item.final_price);
-  put('موديل السيارة', item.year || item.model_year);
-  put('ماركة السيارة', item.make);
-  put('نوع السيارة', item.model);
-  put('هيكل السيارة', item.body_style || item.body);
-  put('فئة السيارة', item.trim);
-  put('الوقود', item.fuel_type);
-  put('نوع الناقل', item.transmission);
-  put('نظام الدفع', item.drivetrain);
-  put('عدد المقاعد', item.seats);
-  put('سعة المحرك', item.engine_cap);
-  put('اللون الخارجي', item.exterior_color);
-  put('اللون الداخلي', item.interior_color);
-  put('الضمان', item.vin_number);
-  put('الحصان الميكانيكي', item.stock_number);
-  put('استهلاك صرفية البنزين', item.fuel_economy);
-  put('عزم نيوتن', item.torque || item.engine);
-  put('السرعة القصوى', item.max_speed);
-  put('عدد السلندرات', item.n_cylinders);
-  put('الطول الكلي (مم)', item.mm_tall);
-  put('العرض الكلي (مم)', item.mm_width);
-  put('الارتفاع الكلي (مم)', item.mm_height);
-  put('قاعدة العجلات (مم)', item.mm_wheel);
-  put('حجم الشنطة', item.back_size);
+function isPlainObject(v){ return !!v && typeof v === 'object' && !Array.isArray(v); }
+function firstNonEmpty(){
+  for(let i=0;i<arguments.length;i++){
+    const v = arguments[i];
+    if(v === 0 || v === false) return v;
+    if(v !== undefined && v !== null && String(v).trim() !== '') return v;
+  }
+  return '';
+}
+function getPath(obj, path){
+  if(!obj || !path) return undefined;
+  return String(path).split('.').reduce((cur, key)=> cur == null ? undefined : cur[key], obj);
+}
+function pick(obj, paths){
+  for(const path of paths || []){
+    const v = getPath(obj, path);
+    if(v === 0 || v === false) return v;
+    if(v !== undefined && v !== null && (typeof v !== 'string' || v.trim() !== '')) return v;
+  }
+  return '';
+}
+function scalarText(v){
+  if(v === undefined || v === null) return '';
+  if(typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return cleanText(v);
+  if(Array.isArray(v)) return cleanText(v.map(scalarText).filter(Boolean).join('، '));
+  if(isPlainObject(v)){
+    return cleanText(firstNonEmpty(v.name, v.label, v.title, v.value, v.text, v.formatted, v.display, v.amount, v.slug));
+  }
+  return '';
+}
+function collectUrls(value, out){
+  out = out || [];
+  if(!value) return out;
+  if(typeof value === 'string'){
+    const raw = value.replace(/\\\//g,'/').trim();
+    if(/^https?:\/\//i.test(raw)) out.push(raw);
+    else if(raw.startsWith('//')) out.push('https:'+raw);
+    else if(raw.startsWith('/')) out.push('https://mzjcars.com'+raw);
+    return out;
+  }
+  if(Array.isArray(value)){
+    value.forEach(v=> collectUrls(v, out));
+    return out;
+  }
+  if(isPlainObject(value)){
+    ['url','src','source_url','full','large','medium','image','image_url','featured_image','thumbnail'].forEach(k=>{
+      if(value[k]) collectUrls(value[k], out);
+    });
+    if(value.sizes) collectUrls(value.sizes, out);
+  }
+  return out;
+}
+function apiImages(item){
+  const values = [
+    pick(item,['images']), pick(item,['gallery']), pick(item,['gallery_images']), pick(item,['media']),
+    pick(item,['image']), pick(item,['image_url']), pick(item,['featured_image']), pick(item,['featuredImage']),
+    pick(item,['thumbnail']), pick(item,['thumbnail_url']), pick(item,['acf.gallery']), pick(item,['acf.images'])
+  ];
+  const urls=[];
+  values.forEach(v=> collectUrls(v, urls));
+  return unique(urls).filter(u=>!looksLikeBadUiImage(u));
+}
+function toStringList(value){
+  const out=[];
+  const add = v=>{
+    if(v === undefined || v === null) return;
+    if(typeof v === 'string' || typeof v === 'number'){
+      String(v).split(/\r?\n|\||؛|;/).forEach(x=>{ x=cleanText(x); if(x) out.push(x); });
+      return;
+    }
+    if(Array.isArray(v)){ v.forEach(add); return; }
+    if(isPlainObject(v)){
+      if(v.name || v.label || v.title || v.value || v.text) add(firstNonEmpty(v.name,v.label,v.title,v.value,v.text));
+      else Object.values(v).forEach(add);
+    }
+  };
+  add(value);
+  return unique(out);
+}
+function featureGroupsFromApi(item){
+  const root = pick(item,['featureGroups','feature_groups','features','spec_features','equipment','acf.features']) || {};
+  const sources = [root, item.featureGroups || {}, item.feature_groups || {}, item.features || {}, item.specifications || {}, item.specs || {}, item, item.acf || {}];
+  const find = aliases => {
+    for(const src of sources){
+      if(!src) continue;
+      for(const key of aliases){
+        const v = src[key];
+        if(v !== undefined && v !== null){
+          const arr = toStringList(v);
+          if(arr.length) return arr;
+        }
+      }
+    }
+    return [];
+  };
   return {
-    parserVersion: 'v31-slider-color-images',
-    source: 'stock',
-    id: item.id || '',
-    carUrl: item.url || item.link || '',
-    title: cleanText(item.name || item.title || 'سيارة المعرض'),
-    price: cleanText(item.price || item.final_price || ''),
-    model: cleanText(item.year || ''),
-    image: item.image || '',
-    images: unique([item.image].filter(Boolean)),
+    interior: find(['interior','inside','interior_features','features_interior','المواصفات الداخلية','مواصفات داخلية']),
+    exterior: find(['exterior','outside','exterior_features','features_exterior','المواصفات الخارجية','مواصفات خارجية']),
+    safety: find(['safety','security','safety_features','features_safety','مواصفات الأمان','مواصفات الامان','الأمان'])
+  };
+}
+function specObjectFromApi(item){
+  const roots = [
+    pick(item,['specs']), pick(item,['specifications']), pick(item,['specification']), pick(item,['details']),
+    pick(item,['vehicle_specs']), pick(item,['car_specs']), pick(item,['attributes']), pick(item,['acf.specs']), pick(item,['acf.specifications'])
+  ].filter(Boolean);
+  const out={};
+  const addPair=(k,v)=>{
+    const key=cleanText(k), val=scalarText(v);
+    if(!key || !val || key.length > 70) return;
+    if(['interior','exterior','safety','features','images','gallery'].includes(key.toLowerCase())) return;
+    out[key]=val;
+  };
+  roots.forEach(root=>{
+    if(Array.isArray(root)){
+      root.forEach(row=>{
+        if(isPlainObject(row)) addPair(firstNonEmpty(row.label,row.name,row.key,row.title), firstNonEmpty(row.value,row.val,row.text,row.content));
+      });
+    }else if(isPlainObject(root)){
+      Object.keys(root).forEach(k=> addPair(k, root[k]));
+    }
+  });
+  return out;
+}
+function normalizeApiSpecLabel(label){
+  label=cleanText(label).toLowerCase();
+  const map = [
+    [/^(السعر|price|final price|final_price)$/i,'السعر'],
+    [/^(الموديل|موديل السيارة|year|model year|model_year)$/i,'موديل السيارة'],
+    [/^(الماركة|ماركة السيارة|make|brand)$/i,'ماركة السيارة'],
+    [/^(النوع|نوع السيارة|model|car model)$/i,'نوع السيارة'],
+    [/^(الفئة|فئة السيارة|trim|class)$/i,'فئة السيارة'],
+    [/^(نوع الهيكل|هيكل السيارة|body|body style|body_style)$/i,'هيكل السيارة'],
+    [/^(المحرك|سعة المحرك|engine|engine cap|engine_cap|engine capacity)$/i,'سعة المحرك'],
+    [/^(نوع الناقل|ناقل الحركة|transmission|gearbox)$/i,'نوع الناقل'],
+    [/^(الدفع|نظام الدفع|drivetrain|drive train)$/i,'نظام الدفع'],
+    [/^(الوقود|نوع الوقود|fuel|fuel type|fuel_type)$/i,'الوقود'],
+    [/^(استهلاك الوقود|استهلاك صرفية البنزين|fuel economy|fuel_economy)$/i,'استهلاك صرفية البنزين'],
+    [/^(الحصان الميكانيكي|horsepower|horse power|hp)$/i,'الحصان الميكانيكي'],
+    [/^(عزم نيوتن|torque)$/i,'عزم نيوتن'],
+    [/^(السرعة القصوى|max speed|max_speed)$/i,'السرعة القصوى'],
+    [/^(عدد السلندرات|cylinders|n_cylinders)$/i,'عدد السلندرات'],
+    [/^(عدد المقاعد|seats)$/i,'عدد المقاعد'],
+    [/^(حجم الشنطة|حجم الشنطة مم|trunk|boot|back_size)$/i,'حجم الشنطة'],
+    [/^(اللون الخارجي|exterior color|exterior_color|car_exterior_color)$/i,'اللون الخارجي'],
+    [/^(اللون الداخلي|interior color|interior_color|car_interior_color)$/i,'اللون الداخلي'],
+    [/^(الطول|الطول مم|الطول الكلي \(مم\)|mm_tall|length)$/i,'الطول الكلي (مم)'],
+    [/^(العرض|العرض مم|العرض الكلي \(مم\)|mm_width|width)$/i,'العرض الكلي (مم)'],
+    [/^(الارتفاع|الارتفاع مم|الارتفاع الكلي \(مم\)|mm_height|height)$/i,'الارتفاع الكلي (مم)'],
+    [/^(قاعدة العجلات|قاعدة العجلات مم|wheelbase|mm_wheel)$/i,'قاعدة العجلات (مم)'],
+    [/^(الضمان|warranty)$/i,'الضمان']
+  ];
+  for(const [re, canonical] of map){ if(re.test(label)) return canonical; }
+  return '';
+}
+function mergeApiSpecs(specs, rawSpecs){
+  Object.keys(rawSpecs || {}).forEach(k=>{
+    const val=scalarText(rawSpecs[k]);
+    if(!val) return;
+    const canonical=normalizeApiSpecLabel(k);
+    if(canonical){ if(!specs[canonical]) specs[canonical]=val; }
+    else if(/^[\u0600-\u06ff0-9 ()\-_/]+$/u.test(cleanText(k)) && cleanText(k).length <= 45 && !specs[cleanText(k)]) specs[cleanText(k)]=val;
+  });
+}
+function apiColors(item, specs){
+  const out=[];
+  const addVal=(v,source)=>{
+    if(!v) return;
+    if(Array.isArray(v)){ v.forEach(x=>addVal(x,source)); return; }
+    if(isPlainObject(v)){
+      const label=scalarText(firstNonEmpty(v.label,v.name,v.title,v.external,v.exterior,v.color,v.value));
+      const imgs=[]; collectUrls(firstNonEmpty(v.images,v.gallery,v.image,v.image_url),imgs);
+      const hex=normalizeHex(firstNonEmpty(v.hex,v.color_hex,v.code));
+      if(hex || label) addStrictColor(out,{label,external:label,hex,source,images:imgs});
+      return;
+    }
+    String(v).split(/[|,،\/]+/).forEach(x=> addStrictColor(out,{label:cleanText(x),source,images:[]}));
+  };
+  ['colors','available_colors','exterior_colors','car_exterior_color','exterior_color','color_variations'].forEach(k=>addVal(item && item[k], 'api'));
+  addVal(getPath(item,'taxonomies.car_exterior_color'), 'api-taxonomy');
+  if(item && item.acf){ ['colors','available_colors','exterior_colors','car_exterior_color','exterior_color','color_variations'].forEach(k=>addVal(item.acf[k], 'api-acf')); }
+  addVal(specs && specs['اللون الخارجي'], 'api-spec');
+  return out;
+}
+function extractApiItems(payload){
+  if(Array.isArray(payload)) return payload;
+  if(!isPlainObject(payload)) return [];
+  const directKeys=['cars','items','data','results','vehicles','posts'];
+  for(const k of directKeys){
+    const v=payload[k];
+    if(Array.isArray(v)) return v;
+    if(isPlainObject(v)){
+      for(const kk of directKeys){ if(Array.isArray(v[kk])) return v[kk]; }
+    }
+  }
+  const arrays = Object.values(payload).filter(Array.isArray);
+  if(arrays.length === 1) return arrays[0];
+  return [];
+}
+function stockItemToCar(item){
+  item = item || {};
+  const specs = {};
+  const put = (label, value)=>{ value = scalarText(value); if(value) specs[label] = value; };
+  put('السعر', pick(item,['price','final_price','sale_price','current_price','pricing.price','pricing.final','acf.price']));
+  put('موديل السيارة', pick(item,['year','model_year','car_year','taxonomies.car_year','acf.year']));
+  put('ماركة السيارة', pick(item,['make','brand','car_make','taxonomies.car_make','acf.make']));
+  put('نوع السيارة', pick(item,['model','car_model','taxonomies.car_model','acf.model']));
+  put('هيكل السيارة', pick(item,['body_style','body','body_type','acf.body_style']));
+  put('فئة السيارة', pick(item,['trim','class','car_trim','taxonomies.car_trim','acf.trim']));
+  put('الوقود', pick(item,['fuel_type','fuel','acf.fuel_type']));
+  put('نوع الناقل', pick(item,['transmission','gearbox','acf.transmission']));
+  put('نظام الدفع', pick(item,['drivetrain','drive_train','drive','acf.drivetrain']));
+  put('عدد المقاعد', pick(item,['seats','seat_count','acf.seats']));
+  put('سعة المحرك', pick(item,['engine_cap','engine_capacity','engine','acf.engine_cap']));
+  put('اللون الخارجي', pick(item,['exterior_color','car_exterior_color','external_color','acf.exterior_color']));
+  put('اللون الداخلي', pick(item,['interior_color','car_interior_color','internal_color','acf.interior_color']));
+  put('الضمان', pick(item,['warranty','guarantee','acf.warranty']));
+  put('استهلاك صرفية البنزين', pick(item,['fuel_economy','fuel_consumption','acf.fuel_economy']));
+  put('الحصان الميكانيكي', pick(item,['horsepower','horse_power','hp','acf.horsepower']));
+  put('عزم نيوتن', pick(item,['torque','acf.torque']));
+  put('السرعة القصوى', pick(item,['max_speed','acf.max_speed']));
+  put('عدد السلندرات', pick(item,['n_cylinders','cylinders','acf.cylinders']));
+  put('الطول الكلي (مم)', pick(item,['mm_tall','length_mm','length','acf.length']));
+  put('العرض الكلي (مم)', pick(item,['mm_width','width_mm','width','acf.width']));
+  put('الارتفاع الكلي (مم)', pick(item,['mm_height','height_mm','height','acf.height']));
+  put('قاعدة العجلات (مم)', pick(item,['mm_wheel','wheelbase_mm','wheelbase','acf.wheelbase']));
+  put('حجم الشنطة', pick(item,['back_size','trunk_size','boot_size','acf.back_size']));
+  mergeApiSpecs(specs, specObjectFromApi(item));
+
+  const images = apiImages(item);
+  const featureGroups = featureGroupsFromApi(item);
+  const colors = apiColors(item, specs);
+  let carUrl = scalarText(pick(item,['url','link','permalink','car_url','post_url','acf.url']));
+  if(carUrl && carUrl.startsWith('/')) carUrl = 'https://mzjcars.com' + carUrl;
+  if(!carUrl){
+    const slug = scalarText(pick(item,['slug','post_name','car_slug']));
+    if(slug) carUrl = 'https://mzjcars.com/cars/' + encodeURIComponent(slug) + '/';
+  }
+  const title = scalarText(pick(item,['name','title.rendered','title','post_title','car_name','acf.name'])) || 'سيارة المعرض';
+  const price = scalarText(firstNonEmpty(specs['السعر'], pick(item,['price','final_price','sale_price','current_price'])));
+  return {
+    parserVersion: PARSER_VERSION,
+    source: 'mzj-platform-v2',
+    id: scalarText(pick(item,['id','ID','post_id','car_id','vehicle_id'])),
+    carUrl,
+    title,
+    price,
+    model: scalarText(firstNonEmpty(specs['موديل السيارة'], pick(item,['year','model_year','car_year']))),
+    image: images[0] || '',
+    images,
     specs,
-    featureGroups: { interior: [], exterior: [], safety: [] },
-    colors: [],
+    featureGroups,
+    colors,
+    availableSliderColors: colors.filter(c=>Array.isArray(c.images) && c.images.length),
     rawStock: item
   };
 }
 async function getStock(force=false){
   if(!force && cache.stock && Date.now()-cache.stockAt < STOCK_TTL) return cache.stock;
   const txt = await fetchText(STOCK_URL);
-  const arr = JSON.parse(txt);
-  const raw = Array.isArray(arr) ? arr : (arr.items || arr.data || []);
-  const items = raw.map(stockItemToCar);
-  cache.stock = { ok:true, count: items.length, fetchedAt: new Date().toISOString(), items };
+  const payload = JSON.parse(txt);
+  const raw = extractApiItems(payload);
+  if(!raw.length && !(Array.isArray(payload) && payload.length === 0)){
+    throw new Error('Cars endpoint returned no readable cars array');
+  }
+  const items = raw.map(stockItemToCar).filter(x=>x.id || x.carUrl || x.title);
+  cache.stock = { ok:true, source:STOCK_URL, count: items.length, fetchedAt: new Date().toISOString(), items };
   cache.stockAt = Date.now();
   return cache.stock;
 }
@@ -459,18 +682,105 @@ function extractBalancedObject(scriptText, varName){
   }
   return null;
 }
+function decodeHtmlEntities(s){
+  return String(s || '')
+    .replace(/&nbsp;|&#160;/gi,' ')
+    .replace(/&amp;/gi,'&')
+    .replace(/&quot;/gi,'"')
+    .replace(/&#039;|&apos;/gi,"'")
+    .replace(/&lt;/gi,'<')
+    .replace(/&gt;/gi,'>')
+    .replace(/&#8211;|&#8212;/gi,'-')
+    .replace(/&#x([0-9a-f]+);/gi,(_,h)=>{ try{return String.fromCodePoint(parseInt(h,16));}catch(e){return '';} })
+    .replace(/&#([0-9]+);/g,(_,n)=>{ try{return String.fromCodePoint(parseInt(n,10));}catch(e){return '';} });
+}
+function htmlLines(html){
+  const marked = String(html || '')
+    .replace(/<script[\s\S]*?<\/script>/gi,' ')
+    .replace(/<style[\s\S]*?<\/style>/gi,' ')
+    .replace(/<br\s*\/?\s*>/gi,'\n')
+    .replace(/<\/(?:p|div|li|h1|h2|h3|h4|h5|h6|section|article|tr|td|dt|dd)>/gi,'\n')
+    .replace(/<[^>]+>/g,' ');
+  return decodeHtmlEntities(marked).split(/\r?\n/).map(x=>cleanText(x)).filter(Boolean);
+}
+function extractFeatureListFromHtml(html, heading){
+  if(!html) return [];
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const h = new RegExp('<h[1-6][^>]*>\\s*'+escaped+'\\s*<\\/h[1-6]>', 'i');
+  const m = h.exec(html);
+  if(!m) return [];
+  const tail = html.slice(m.index + m[0].length);
+  const nextHeading = tail.search(/<h[1-6][^>]*>/i);
+  const frag = nextHeading >= 0 ? tail.slice(0,nextHeading) : tail.slice(0,7000);
+  const out=[];
+  let lm;
+  const liRe=/<li[^>]*>([\s\S]*?)<\/li>/ig;
+  while((lm=liRe.exec(frag))){
+    const t=cleanText(decodeHtmlEntities(lm[1]));
+    if(t && t.length <= 180) out.push(t);
+  }
+  if(out.length) return unique(out);
+  return unique(htmlLines(frag).filter(x=>x.length <= 180 && !/^(المواصفات|مواصفات)/.test(x))).slice(0,40);
+}
+function extractMainSpecsFromHtml(html){
+  const lines=htmlLines(html);
+  const specs={};
+  const aliases={
+    'الفئة':'فئة السيارة','فئة السيارة':'فئة السيارة','الموديل':'موديل السيارة','موديل السيارة':'موديل السيارة',
+    'نوع الهيكل':'هيكل السيارة','هيكل السيارة':'هيكل السيارة','نوع الناقل':'نوع الناقل','ناقل الحركة':'نوع الناقل',
+    'الدفع':'نظام الدفع','نظام الدفع':'نظام الدفع','نوع الوقود':'الوقود','الوقود':'الوقود',
+    'استهلاك الوقود':'استهلاك صرفية البنزين','استهلاك صرفية البنزين':'استهلاك صرفية البنزين',
+    'المحرك':'سعة المحرك','سعة المحرك':'سعة المحرك','الحصان الميكانيكي':'الحصان الميكانيكي','عزم نيوتن':'عزم نيوتن',
+    'السرعة القصوى':'السرعة القصوى','عدد السلندرات':'عدد السلندرات','عدد المقاعد':'عدد المقاعد','الضمان':'الضمان',
+    'الطول مم':'الطول الكلي (مم)','العرض مم':'العرض الكلي (مم)','الارتفاع مم':'الارتفاع الكلي (مم)',
+    'قاعدة العجلات مم':'قاعدة العجلات (مم)','حجم الشنطة مم':'حجم الشنطة','حجم الشنطة':'حجم الشنطة',
+    'اللون الخارجي':'اللون الخارجي','اللون الداخلي':'اللون الداخلي'
+  };
+  for(let i=0;i<lines.length-1;i++){
+    const key=aliases[lines[i]];
+    if(!key || specs[key]) continue;
+    const val=lines[i+1];
+    if(!val || aliases[val] || val.length > 140) continue;
+    specs[key]=val;
+  }
+  return specs;
+}
 function extractSpecsData(html){
+  const fallback = {
+    specs: extractMainSpecsFromHtml(html),
+    interior: extractFeatureListFromHtml(html,'المواصفات الداخلية'),
+    exterior: extractFeatureListFromHtml(html,'المواصفات الخارجية'),
+    safety: extractFeatureListFromHtml(html,'مواصفات الأمان')
+  };
   const names = ['MZJ_SPECS_ULTRA_V2_DATA', 'window.MZJ_SPECS_ULTRA_V2_DATA'];
   for(const n of names){
     const obj = extractBalancedObject(html, n);
     if(obj){
-      try { return JSON.parse(obj); } catch(e) {}
+      try {
+        const parsed=JSON.parse(obj) || {};
+        return {
+          specs: Object.assign({}, fallback.specs, parsed.specs || parsed.specifications || {}),
+          interior: unique([...(parsed.interior || []), ...fallback.interior]),
+          exterior: unique([...(parsed.exterior || []), ...fallback.exterior]),
+          safety: unique([...(parsed.safety || []), ...fallback.safety])
+        };
+      } catch(e) {}
     }
   }
   const re = /MZJ_SPECS_ULTRA_V2_DATA\s*=\s*(\{[\s\S]*?\});/;
   const m = html.match(re);
-  if(m){ try { return JSON.parse(m[1]); } catch(e){} }
-  return { interior: [], exterior: [], safety: [] };
+  if(m){
+    try {
+      const parsed=JSON.parse(m[1]) || {};
+      return {
+        specs: Object.assign({}, fallback.specs, parsed.specs || parsed.specifications || {}),
+        interior: unique([...(parsed.interior || []), ...fallback.interior]),
+        exterior: unique([...(parsed.exterior || []), ...fallback.exterior]),
+        safety: unique([...(parsed.safety || []), ...fallback.safety])
+      };
+    } catch(e){}
+  }
+  return fallback;
 }
 function looksLikeBadUiImage(url){
   const u = String(url || '').toLowerCase();
@@ -511,28 +821,48 @@ function extractImages(html, baseUrl, fallback){
   return unique(out).slice(0, 80);
 }
 function mergeCar(stockCar, details, pageHtml){
+  const endpointGroups = stockCar.featureGroups || {};
   const featureGroups = {
-    interior: unique(details.interior || []),
-    exterior: unique(details.exterior || []),
-    safety: unique(details.safety || [])
+    interior: unique([...(endpointGroups.interior || []), ...(details.interior || [])]),
+    exterior: unique([...(endpointGroups.exterior || []), ...(details.exterior || [])]),
+    safety: unique([...(endpointGroups.safety || []), ...(details.safety || [])])
   };
-  const images = extractImages(pageHtml || '', stockCar.carUrl, stockCar.image);
-  const ext = stockCar.specs['اللون الخارجي'];
-  const inn = stockCar.specs['اللون الداخلي'];
-  const availableSliderColors = buildAvailableSliderColors(stockCar, pageHtml || '');
-  const colors = availableSliderColors.length
-    ? availableSliderColors.map(c => ({ external: c.external || c.label, internal: inn || '', token: c.token, hex: c.hex || '', raw: c.raw || c.external || c.label, source: c.source || 'site', images: unique(c.images || []) }))
-    : (ext || inn ? [{ external: ext || 'لون خارجي', internal: inn || '', token: normalizeColorToken(ext), raw: ext || '', source:'stock-spec', images:[] }] : []);
+  const specs = Object.assign({}, stockCar.specs || {});
+  mergeApiSpecs(specs, details.specs || {});
+  const pageImages = extractImages(pageHtml || '', stockCar.carUrl, stockCar.image);
+  const images = unique([...(stockCar.images || []), ...pageImages]);
+  const ext = specs['اللون الخارجي'];
+  const inn = specs['اللون الداخلي'];
+  const pageSliderColors = buildAvailableSliderColors(Object.assign({},stockCar,{specs}), pageHtml || '');
+  const endpointSliderColors = (stockCar.availableSliderColors || []).filter(c=>Array.isArray(c.images) && c.images.length);
+  const availableSliderColors = endpointSliderColors.length ? endpointSliderColors : pageSliderColors.filter(c=>Array.isArray(c.images) && c.images.length);
+  let colors = uniqueColorObjects([...(stockCar.colors || []), ...pageSliderColors]);
+  if(!colors.length && (ext || inn)) colors=[{ external: ext || 'لون خارجي', internal: inn || '', token: normalizeColorToken(ext), raw: ext || '', source:'spec', images:[] }];
+  colors = colors.map(c=>Object.assign({},c,{internal:c.internal || inn || ''}));
   return Object.assign({}, stockCar, {
-    source: 'stock + car-page-js',
-    parserVersion: 'v31-slider-color-images',
-    images: images.length ? images : stockCar.images,
+    source: 'mzj-platform-v2 + car-page',
+    parserVersion: PARSER_VERSION,
+    image: images[0] || stockCar.image || '',
+    images,
+    specs,
     featureGroups,
     colors,
     availableSliderColors,
-    specsComplete: !!(featureGroups.interior.length || featureGroups.exterior.length || featureGroups.safety.length),
+    specsComplete: !!(Object.keys(specs).length || featureGroups.interior.length || featureGroups.exterior.length || featureGroups.safety.length),
     updatedAt: new Date().toISOString()
   });
+}
+function uniqueColorObjects(list){
+  const out=[];
+  (list || []).forEach(c=>{
+    if(!c) return;
+    const key=String(firstNonEmpty(c.hex,c.token,c.external,c.label,c.raw)).toLowerCase();
+    if(!key) return;
+    const found=out.find(x=>String(firstNonEmpty(x.hex,x.token,x.external,x.label,x.raw)).toLowerCase()===key);
+    if(found){ found.images=unique([...(found.images||[]),...(c.images||[])]); }
+    else out.push(Object.assign({},c,{images:unique(c.images||[])}));
+  });
+  return out;
 }
 async function readCar(url){
   const key = url;
@@ -544,8 +874,11 @@ async function readCar(url){
     const pageUrl = /^https?:/.test(url) ? url : decodeURIComponent(url);
     car = stock.items.find(x=> x.carUrl === pageUrl) || { carUrl: pageUrl, title: 'سيارة المعرض', specs:{}, images:[], featureGroups:{interior:[],exterior:[],safety:[]}, colors:[] };
   }
-  const html = car.carUrl ? await fetchText(car.carUrl) : '';
-  const details = extractSpecsData(html);
+  let html = '';
+  if(car.carUrl){
+    try { html = await fetchText(car.carUrl); } catch(e) { html = ''; }
+  }
+  const details = html ? extractSpecsData(html) : { specs:{}, interior:[], exterior:[], safety:[] };
   const data = mergeCar(car, details, html);
   cache.cars.set(key, { at: Date.now(), data });
   return data;

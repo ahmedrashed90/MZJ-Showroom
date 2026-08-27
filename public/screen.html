@@ -114,8 +114,10 @@
 
     function loadCar(url){
       db.collection('showroom_car_cache').doc(hash(url)).get().then(function(doc){
-        if(doc.exists && doc.data().parserVersion === 'v11-fixed-summary-specs'){
-          data = doc.data();
+        var cached = doc.exists ? (doc.data() || {}) : null;
+        var usable = cached && (cached.title || (cached.images && cached.images.length) || (cached.specs && Object.keys(cached.specs).length));
+        if(usable){
+          data = cached;
           panelIndex = 0;
           imageIndex = 0;
           badLoaded = {};
@@ -123,7 +125,7 @@
           render();
           fetchFresh(url).catch(function(){});
         } else {
-          fetchFresh(url);
+          fetchFresh(url).catch(function(){ offline(); });
         }
       }).catch(function(){ fetchFresh(url).catch(function(){ offline(); }); });
     }
