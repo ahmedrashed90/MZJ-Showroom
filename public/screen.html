@@ -38,12 +38,10 @@
     var imageIndex=0;
     var techIndex=0;
     var featureSection='interior';
-    var featurePage=0;
     var imageTimer=null;
     var techTimer=null;
     var featureTimer=null;
     var badLoaded={};
-    var FEATURE_PAGE_SIZE=8;
 
     function empty(msg){
       clearTimers();
@@ -206,16 +204,22 @@
         '<div class="showroom-tech-grid">'+g.items.map(function(x){return '<div class="showroom-tech-spec"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>';}).join('')+'</div>';
     }
 
+    function featureLayoutClass(count){
+      if(count>24)return 'feature-cols-4 feature-very-dense';
+      if(count>16)return 'feature-cols-4 feature-dense';
+      if(count>10)return 'feature-cols-3 feature-dense';
+      return 'feature-cols-2';
+    }
+
     function featureHtml(){
       var groups=sectionData(),valid=validSections();
       if(!valid.length)return'';
-      if(valid.indexOf(featureSection)<0){featureSection=valid[0];featurePage=0;}
-      var all=groups[featureSection]||[],pages=Math.max(1,Math.ceil(all.length/FEATURE_PAGE_SIZE));
-      if(featurePage>=pages)featurePage=0;
-      var items=all.slice(featurePage*FEATURE_PAGE_SIZE,(featurePage+1)*FEATURE_PAGE_SIZE);
-      return '<div class="showroom-section-head showroom-compact-head"><strong>المواصفات</strong></div>'+
-        '<div class="showroom-tabs">'+valid.map(function(k){return '<button class="showroom-tab '+(k===featureSection?'active':'')+'" data-section="'+k+'">'+sectionTitle(k)+'</button>';}).join('')+'</div>'+
-        '<div class="showroom-features">'+items.map(function(x){return '<div class="showroom-feature"><i>✓</i><span>'+esc(x)+'</span></div>';}).join('')+'</div>';
+      if(valid.indexOf(featureSection)<0){featureSection=valid[0];}
+      var items=groups[featureSection]||[];
+      var layout=featureLayoutClass(items.length);
+      return '<div class="showroom-section-head showroom-compact-head"><strong>المواصفات</strong></div>'+ 
+        '<div class="showroom-tabs">'+valid.map(function(k){return '<button class="showroom-tab '+(k===featureSection?'active':'')+'" data-section="'+k+'">'+sectionTitle(k)+'</button>';}).join('')+'</div>'+ 
+        '<div class="showroom-features '+layout+'">'+items.map(function(x){return '<div class="showroom-feature"><i>✓</i><span>'+esc(x)+'</span></div>';}).join('')+'</div>';
     }
 
     function logoHtml(){return '<div id="detailsHead" class="showroom-details-head '+(displaySettings.logoPosition==='left'?'logo-left':'logo-right')+'"><img id="showroomLogo" class="showroom-logo '+(displaySettings.logoDataUrl?'':'hidden')+'" '+(displaySettings.logoDataUrl?'src="'+esc(displaySettings.logoDataUrl)+'"':'')+' alt="الشعار"></div>';}
@@ -278,7 +282,7 @@
       Array.prototype.slice.call(document.querySelectorAll('.showroom-tech-tab')).forEach(function(btn){btn.onclick=function(e){e.stopPropagation();techIndex=parseInt(btn.getAttribute('data-tech')||'0',10)||0;updateTechOnly();};});
     }
     function bindFeatureTabs(){
-      Array.prototype.slice.call(document.querySelectorAll('.showroom-tab')).forEach(function(btn){btn.onclick=function(e){e.stopPropagation();featureSection=btn.getAttribute('data-section')||featureSection;featurePage=0;updateFeaturesOnly();};});
+      Array.prototype.slice.call(document.querySelectorAll('.showroom-tab')).forEach(function(btn){btn.onclick=function(e){e.stopPropagation();featureSection=btn.getAttribute('data-section')||featureSection;updateFeaturesOnly();};});
     }
     function bindRendered(){
       bindTechTabs();bindFeatureTabs();
@@ -287,18 +291,16 @@
     }
 
     function advanceFeature(){
-      var groups=sectionData(),valid=validSections();if(!valid.length)return;
-      if(valid.indexOf(featureSection)<0){featureSection=valid[0];featurePage=0;}
-      var all=groups[featureSection]||[],pages=Math.max(1,Math.ceil(all.length/FEATURE_PAGE_SIZE));
-      if(featurePage+1<pages)featurePage++;
-      else{featurePage=0;var i=valid.indexOf(featureSection);featureSection=valid[(i+1)%valid.length];}
+      var valid=validSections();if(valid.length<2)return;
+      if(valid.indexOf(featureSection)<0){featureSection=valid[0];}
+      else{var i=valid.indexOf(featureSection);featureSection=valid[(i+1)%valid.length];}
       updateFeaturesOnly();
     }
 
     function startLoops(){
       imageTimer=setInterval(function(){var arr=images();if(arr.length>1){imageIndex=(imageIndex+1)%arr.length;updateImageOnly();}},6000);
       techTimer=setInterval(function(){var groups=technicalGroups();if(groups.length>1){techIndex=(techIndex+1)%groups.length;updateTechOnly();}},8000);
-      featureTimer=setInterval(advanceFeature,8000);
+      featureTimer=setInterval(advanceFeature,12000);
     }
 
     function cacheKey(){return screenOptions.carId?hash('id:'+screenOptions.carId):hash(screenOptions.carUrl);}
@@ -311,7 +313,7 @@
       if(!r.ok)throw new Error(d.error||'تعذر قراءة بيانات السيارة');
       if(screenOptions.carId&&String(d.id||'')!==String(screenOptions.carId))throw new Error('بيانات السيارة لا تطابق ID الشاشة');
       if(screenOptions.carUrl&&d.carUrl&&normUrl(d.carUrl)!==normUrl(screenOptions.carUrl))throw new Error('بيانات السيارة لا تطابق رابط الشاشة');
-      data=d;imageIndex=0;badLoaded={};techIndex=0;featureSection='interior';featurePage=0;render();
+      data=d;imageIndex=0;badLoaded={};techIndex=0;featureSection='interior';render();
       db.collection('showroom_car_cache').doc(cacheKey()).set(d,{merge:true}).catch(function(){});
       return d;
     }
@@ -323,7 +325,7 @@
           var doc=await db.collection('showroom_car_cache').doc(cacheKey()).get();
           var cached=doc.exists?(doc.data()||{}):null;
           if(cached&&(!screenOptions.carId||String(cached.id||'')===String(screenOptions.carId))&&(!screenOptions.carUrl||!cached.carUrl||normUrl(cached.carUrl)===normUrl(screenOptions.carUrl))){
-            data=cached;imageIndex=0;badLoaded={};techIndex=0;featureSection='interior';featurePage=0;render();return;
+            data=cached;imageIndex=0;badLoaded={};techIndex=0;featureSection='interior';render();return;
           }
         }catch(ignore){}
         empty('تعذر تحميل بيانات نفس السيارة وسيتم إعادة المحاولة تلقائيًا');

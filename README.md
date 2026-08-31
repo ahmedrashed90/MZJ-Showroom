@@ -1,27 +1,11 @@
-# MZJ Showroom v39 — Exact Vehicle / Page Data Clean
+# MZJ Showroom v40 — Full Feature Lists Clean
 
-Clean rebuild of the dashboard-to-display vehicle binding.
+Built from the approved v39 exact-vehicle binding.
 
-## Core behavior
-- Each display is locked to the selected vehicle by stable vehicle/post ID.
-- The canonical car URL saved with that ID is the URL used by the QR code.
-- The display title comes from the exact selected car page; no generic "سيارة المعرض" fallback is shown.
-- Vehicle images are read only from the exact car gallery (`data-gallery-main` / `data-gallery-thumb`) and exact color image payloads. Related-car/page-wide images are not scraped.
-- When the selected car changes, saved manual images/color selection from the old car are cleared before the new car is saved.
-- Car-page data is read from the same structures rendered by the Panorama car plugin:
-  - quick/main specifications
-  - transmission group
-  - engine/performance group
-  - dimensions/weights group
-  - interior features
-  - exterior features
-  - safety features
-- Main specs are shown in full.
-- Technical groups and long feature lists rotate automatically so all available data can be displayed.
-- Duplicate specification concepts are removed from later groups if already present in main specs.
-- Repeated feature text is deduplicated across interior/exterior/safety sections.
-- Dashboard font-size controls and logo selection/size/position continue to apply live to display pages.
-- `forceRefresh` performs a real re-read of the exact vehicle.
-
-## Identity rule
-There is no "closest" or similar-car fallback. If the requested ID cannot be found in the stock endpoint, `/api/read-car` returns an error instead of constructing a different vehicle.
+## v40 change
+- Interior, exterior, and safety lists are no longer split into 8-item pages.
+- Opening any of the three feature tabs renders the complete list returned for that exact vehicle.
+- Long lists automatically reflow to 2, 3, or 4 columns so all items remain visible without truncating the data.
+- Dashboard specification font size remains the preferred size. Very long lists only receive a safe visual fit cap to prevent text from being cut off-screen; no data item is removed.
+- Automatic rotation now changes between complete feature sections every 12 seconds.
+- Existing v39 rules remain unchanged: exact vehicle/post ID, exact title/QR/gallery, main specs, technical groups, deduplication, dashboard logo controls, and force refresh.

@@ -3,7 +3,7 @@ const https = require('https');
 const { URL } = require('url');
 
 const STOCK_URL = process.env.MZJ_CARS_ENDPOINT || 'https://mzjcars.com/wp-json/mzj-platform/v2/cars';
-const PARSER_VERSION = 'v39-exact-id-page-data';
+const PARSER_VERSION = 'v40-full-feature-lists';
 const cache = { stock: null, stockAt: 0, cars: new Map() };
 const STOCK_TTL = 2 * 60 * 1000;
 const CAR_TTL = 10 * 60 * 1000;
@@ -997,7 +997,7 @@ function mergeCar(stockCar, pageData){
   const availableSliderColors=colors.filter(c=>Array.isArray(c.images)&&c.images.length);
   return Object.assign({},stockCar,{
     source:'mzj-platform-v2 + exact-car-page',
-    parserVersion:'v39-exact-id-page-data',
+    parserVersion:'v40-full-feature-lists',
     title:pageData.title||stockCar.title||'',
     price:pageData.price||stockCar.price||'',
     image:images[0]||stockCar.image||'',
