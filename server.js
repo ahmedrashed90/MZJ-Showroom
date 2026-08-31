@@ -65,9 +65,9 @@ async function handler(req, res){
     }
 
     if(u.pathname === '/api/read-car'){
-      const carUrl = u.searchParams.get('url') || '';
-      if(!carUrl) return sendJson(res, 400, { ok:false, error:'missing url' });
-      return sendJson(res, 200, await readCar(carUrl));
+      const identifier = u.searchParams.get('id') || u.searchParams.get('url') || '';
+      if(!identifier) return sendJson(res, 400, { ok:false, error:'missing vehicle id' });
+      return sendJson(res, 200, await readCar(identifier));
     }
 
     if(u.pathname === '/api/image-proxy'){

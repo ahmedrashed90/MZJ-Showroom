@@ -3,7 +3,7 @@ const https = require('https');
 const { URL } = require('url');
 
 const STOCK_URL = process.env.MZJ_CARS_ENDPOINT || 'https://mzjcars.com/wp-json/mzj-platform/v2/cars';
-const PARSER_VERSION = 'v32-mzj-platform-v2';
+const PARSER_VERSION = 'v39-exact-id-page-data';
 const cache = { stock: null, stockAt: 0, cars: new Map() };
 const STOCK_TTL = 2 * 60 * 1000;
 const CAR_TTL = 10 * 60 * 1000;
@@ -625,7 +625,7 @@ function stockItemToCar(item){
     const slug = scalarText(pick(item,['slug','post_name','car_slug']));
     if(slug) carUrl = 'https://mzjcars.com/cars/' + encodeURIComponent(slug) + '/';
   }
-  const title = scalarText(pick(item,['name','title.rendered','title','post_title','car_name','acf.name'])) || 'سيارة المعرض';
+  const title = scalarText(pick(item,['name','title.rendered','title','post_title','car_name','acf.name'])) || [specs['ماركة السيارة'],specs['نوع السيارة'],specs['فئة السيارة'],specs['موديل السيارة']].filter(Boolean).join(' - ');
   const price = scalarText(firstNonEmpty(specs['السعر'], pick(item,['price','final_price','sale_price','current_price'])));
   return {
     parserVersion: PARSER_VERSION,
@@ -820,36 +820,196 @@ function extractImages(html, baseUrl, fallback){
 
   return unique(out).slice(0, 80);
 }
-function mergeCar(stockCar, details, pageHtml){
-  const endpointGroups = stockCar.featureGroups || {};
-  const featureGroups = {
-    interior: unique([...(endpointGroups.interior || []), ...(details.interior || [])]),
-    exterior: unique([...(endpointGroups.exterior || []), ...(details.exterior || [])]),
-    safety: unique([...(endpointGroups.safety || []), ...(details.safety || [])])
+function attrValue(tag, name){
+  const re = new RegExp("\\b"+name+"\\s*=\\s*([\"'])([\\s\\S]*?)\\1",'i');
+  const m = re.exec(String(tag || ''));
+  return m ? cleanText(decodeHtmlEntities(m[2])) : '';
+}
+function rawAttrValue(tag, name){
+  const re = new RegExp("\\b"+name+"\\s*=\\s*([\"'])([\\s\\S]*?)\\1",'i');
+  const m = re.exec(String(tag || ''));
+  return m ? decodeHtmlEntities(m[2]) : '';
+}
+function normUrlKey(value){
+  value=String(value||'').trim();
+  if(!value) return '';
+  try{
+    const u=new URL(value);
+    u.hash='';
+    let path=u.pathname.replace(/\/{2,}/g,'/');
+    if(path.length>1) path=path.replace(/\/+$/,'');
+    return (u.origin.toLowerCase()+path+u.search).toLowerCase();
+  }catch(e){
+    return value.replace(/\/+$/,'').toLowerCase();
+  }
+}
+function sliceBetween(html, startNeedle, endNeedles){
+  html=String(html||'');
+  const start=html.indexOf(startNeedle);
+  if(start<0) return '';
+  let end=html.length;
+  (endNeedles||[]).forEach(n=>{
+    const i=html.indexOf(n,start+startNeedle.length);
+    if(i>=0 && i<end) end=i;
+  });
+  return html.slice(start,end);
+}
+function pageTitleFromHtml(html){
+  const frag=sliceBetween(html,'class="mzjpan-summary"',['class="mzjpan-price"','class="mzjpan-quick-grid"']);
+  const m=/<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(frag);
+  return m?cleanText(decodeHtmlEntities(m[1])):'';
+}
+function pagePriceFromHtml(html){
+  const frag=sliceBetween(html,'class="mzjpan-price"',['class="mzjpan-quick-grid"']);
+  const m=/<strong[^>]*>([\s\S]*?)<\/strong>/i.exec(frag);
+  return m?cleanText(decodeHtmlEntities(m[1])):'';
+}
+function pageQuickSpecs(html){
+  const frag=sliceBetween(html,'class="mzjpan-quick-grid"',['class="mzjpan-unavailable"','class="mzjpan-ctas"','class="mzjpan-actions"']);
+  const out=[];
+  const re=/<div[^>]*>\s*<span[^>]*>([\s\S]*?)<\/span>\s*<strong[^>]*>([\s\S]*?)<\/strong>\s*<\/div>/ig;
+  let m;
+  while((m=re.exec(frag))){
+    const label=cleanText(decodeHtmlEntities(m[1]));
+    const value=cleanText(decodeHtmlEntities(m[2]));
+    if(label && value && value!=='—') out.push({label,value});
+  }
+  return out;
+}
+function pageSpecGroups(html){
+  const frag=sliceBetween(html,'class="mzjpan-spec-groups"',['class="mzjpan-send-spec"','class="mzjpan-features"']);
+  const groups=[];
+  const dre=/<details[^>]*class=["'][^"']*mzjpan-spec-group[^"']*["'][^>]*>([\s\S]*?)<\/details>/ig;
+  let dm;
+  while((dm=dre.exec(frag))){
+    const body=dm[1];
+    const sm=/<summary[^>]*>([\s\S]*?)<\/summary>/i.exec(body);
+    const title=sm?cleanText(decodeHtmlEntities(sm[1])):'';
+    if(!title) continue;
+    const items=[];
+    const pre=/<p[^>]*>\s*<span[^>]*>([\s\S]*?)<\/span>\s*<strong[^>]*>([\s\S]*?)<\/strong>\s*<\/p>/ig;
+    let pm;
+    while((pm=pre.exec(body))){
+      const label=cleanText(decodeHtmlEntities(pm[1]));
+      const value=cleanText(decodeHtmlEntities(pm[2]));
+      if(label && value && value!=='—') items.push({label,value});
+    }
+    if(items.length) groups.push({title,items});
+  }
+  return groups;
+}
+function pageFeatureGroups(html){
+  const frag=sliceBetween(html,'class="mzjpan-features"',['class="mzjpan-related"','</main>']);
+  const result={interior:[],exterior:[],safety:[]};
+  const re=/<div[^>]*>\s*<h3[^>]*>([\s\S]*?)<\/h3>\s*<ul[^>]*>([\s\S]*?)<\/ul>\s*<\/div>/ig;
+  let m;
+  while((m=re.exec(frag))){
+    const title=cleanText(decodeHtmlEntities(m[1]));
+    const items=[];
+    const lire=/<li[^>]*>([\s\S]*?)<\/li>/ig;
+    let lm;
+    while((lm=lire.exec(m[2]))){
+      const t=cleanText(decodeHtmlEntities(lm[1]));
+      if(t) items.push(t);
+    }
+    if(/الداخلية/.test(title)) result.interior=unique(items);
+    else if(/الخارجية/.test(title)) result.exterior=unique(items);
+    else if(/الأمان|الامان/.test(title)) result.safety=unique(items);
+  }
+  return result;
+}
+function pageGalleryImages(html){
+  const frag=sliceBetween(html,'class="mzjpan-gallery"',['class="mzjpan-available-colors"','class="mzjpan-summary"']);
+  const images=[];
+  const mainTag=/<img\b[^>]*data-gallery-main[^>]*>/i.exec(frag);
+  if(mainTag){ const src=attrValue(mainTag[0],'src'); if(src) images.push(src); }
+  const bre=/<button\b[^>]*data-gallery-thumb[^>]*>/ig;
+  let bm;
+  while((bm=bre.exec(frag))){ const u=attrValue(bm[0],'data-full'); if(u) images.push(u); }
+  return unique(images).filter(u=>!badImageUrl(u));
+}
+function badImageUrl(u){
+  return /default-car|placeholder|no-image|noimage|logo|favicon|icon|cropped|avatar|loader|spinner|blank/i.test(String(u||''));
+}
+function pageColorImages(html){
+  const frag=sliceBetween(html,'class="mzjpan-available-colors"',['class="mzjpan-summary"']);
+  const out=[];
+  const re=/<button\b[^>]*data-next-external[^>]*>/ig;
+  let m;
+  while((m=re.exec(frag))){
+    const label=attrValue(m[0],'data-next-external');
+    const raw=rawAttrValue(m[0],'data-color-images');
+    let imgs=[];
+    if(raw){
+      try{ const parsed=JSON.parse(raw); if(Array.isArray(parsed)) imgs=parsed; }catch(e){}
+    }
+    imgs=unique(imgs).filter(u=>!badImageUrl(u));
+    if(label) addStrictColor(out,{label,external:label,token:normalizeColorToken(label),raw:label,source:'car-page',images:imgs});
+  }
+  return out;
+}
+function canonicalSpecLabel(label){
+  label=cleanText(label);
+  const map={
+    'الفئة':'فئة السيارة','سعة المحرك':'سعة المحرك','المحرك':'سعة المحرك','نوع الهيكل':'هيكل السيارة','الموديل':'موديل السيارة',
+    'الدفع':'نظام الدفع','ناقل الحركة':'نوع الناقل','نوع الناقل':'نوع الناقل','عدد السرعات':'عدد السرعات','عدد المقاعد':'عدد المقاعد',
+    'نوع الوقود':'الوقود','استهلاك الوقود':'استهلاك صرفية البنزين','الضمان':'الضمان','الحصان الميكانيكي':'الحصان الميكانيكي',
+    'عزم نيوتن':'عزم نيوتن','السرعة القصوى':'السرعة القصوى','عدد السلندرات':'عدد السلندرات','الطول مم':'الطول الكلي (مم)',
+    'العرض مم':'العرض الكلي (مم)','الارتفاع مم':'الارتفاع الكلي (مم)','قاعدة العجلات مم':'قاعدة العجلات (مم)','حجم الشنطة مم':'حجم الشنطة'
   };
-  const specs = Object.assign({}, stockCar.specs || {});
-  mergeApiSpecs(specs, details.specs || {});
-  const pageImages = extractImages(pageHtml || '', stockCar.carUrl, stockCar.image);
-  const images = unique([...(stockCar.images || []), ...pageImages]);
-  const ext = specs['اللون الخارجي'];
-  const inn = specs['اللون الداخلي'];
-  const pageSliderColors = buildAvailableSliderColors(Object.assign({},stockCar,{specs}), pageHtml || '');
-  const endpointSliderColors = (stockCar.availableSliderColors || []).filter(c=>Array.isArray(c.images) && c.images.length);
-  const availableSliderColors = endpointSliderColors.length ? endpointSliderColors : pageSliderColors.filter(c=>Array.isArray(c.images) && c.images.length);
-  let colors = uniqueColorObjects([...(stockCar.colors || []), ...pageSliderColors]);
-  if(!colors.length && (ext || inn)) colors=[{ external: ext || 'لون خارجي', internal: inn || '', token: normalizeColorToken(ext), raw: ext || '', source:'spec', images:[] }];
-  colors = colors.map(c=>Object.assign({},c,{internal:c.internal || inn || ''}));
-  return Object.assign({}, stockCar, {
-    source: 'mzj-platform-v2 + car-page',
-    parserVersion: PARSER_VERSION,
-    image: images[0] || stockCar.image || '',
+  return map[label]||label;
+}
+function extractCanonicalCarPageData(html){
+  const quickSpecs=pageQuickSpecs(html);
+  const specGroups=pageSpecGroups(html);
+  const featureGroups=pageFeatureGroups(html);
+  const specs={};
+  quickSpecs.forEach(x=>{const k=canonicalSpecLabel(x.label);if(k&&!specs[k])specs[k]=x.value;});
+  specGroups.forEach(g=>g.items.forEach(x=>{const k=canonicalSpecLabel(x.label);if(k&&!specs[k])specs[k]=x.value;}));
+  return {
+    title:pageTitleFromHtml(html),
+    price:pagePriceFromHtml(html),
+    quickSpecs,
+    specGroups,
+    specs,
+    featureGroups,
+    images:pageGalleryImages(html),
+    colors:pageColorImages(html)
+  };
+}
+function mergeCar(stockCar, pageData){
+  pageData=pageData||{specs:{},quickSpecs:[],specGroups:[],featureGroups:{interior:[],exterior:[],safety:[]},images:[],colors:[]};
+  const specs=Object.assign({},stockCar.specs||{});
+  Object.keys(pageData.specs||{}).forEach(k=>{ if(pageData.specs[k]) specs[k]=pageData.specs[k]; });
+  const strictImages=unique(pageData.images||[]);
+  const images=strictImages.length?strictImages:unique([...(stockCar.images||[]),...(stockCar.image?[stockCar.image]:[])]).filter(u=>!badImageUrl(u));
+  const strictColors=uniqueColorObjects(pageData.colors||[]);
+  const colors=strictColors.length?strictColors:uniqueColorObjects(stockCar.colors||[]);
+  const fg=pageData.featureGroups||{};
+  const stockFg=stockCar.featureGroups||{};
+  const featureGroups={
+    interior:unique((fg.interior&&fg.interior.length)?fg.interior:(stockFg.interior||[])),
+    exterior:unique((fg.exterior&&fg.exterior.length)?fg.exterior:(stockFg.exterior||[])),
+    safety:unique((fg.safety&&fg.safety.length)?fg.safety:(stockFg.safety||[]))
+  };
+  const quickSpecs=(pageData.quickSpecs&&pageData.quickSpecs.length)?pageData.quickSpecs:[];
+  const specGroups=(pageData.specGroups&&pageData.specGroups.length)?pageData.specGroups:[];
+  const availableSliderColors=colors.filter(c=>Array.isArray(c.images)&&c.images.length);
+  return Object.assign({},stockCar,{
+    source:'mzj-platform-v2 + exact-car-page',
+    parserVersion:'v39-exact-id-page-data',
+    title:pageData.title||stockCar.title||'',
+    price:pageData.price||stockCar.price||'',
+    image:images[0]||stockCar.image||'',
     images,
     specs,
+    quickSpecs,
+    specGroups,
     featureGroups,
     colors,
     availableSliderColors,
-    specsComplete: !!(Object.keys(specs).length || featureGroups.interior.length || featureGroups.exterior.length || featureGroups.safety.length),
-    updatedAt: new Date().toISOString()
+    specsComplete:!!(quickSpecs.length||specGroups.length||featureGroups.interior.length||featureGroups.exterior.length||featureGroups.safety.length||Object.keys(specs).length),
+    updatedAt:new Date().toISOString()
   });
 }
 function uniqueColorObjects(list){
@@ -864,23 +1024,30 @@ function uniqueColorObjects(list){
   });
   return out;
 }
-async function readCar(url){
-  const key = url;
-  const cached = cache.cars.get(key);
-  if(cached && Date.now()-cached.at < CAR_TTL) return cached.data;
-  const stock = await getStock(false);
-  let car = stock.items.find(x=> x.carUrl === url) || stock.items.find(x=> String(x.id) === String(url));
+async function readCar(identifier){
+  identifier=String(identifier||'').trim();
+  if(!identifier) throw new Error('Missing vehicle identifier');
+  const key=identifier;
+  const cached=cache.cars.get(key);
+  if(cached && Date.now()-cached.at<CAR_TTL) return cached.data;
+  const stock=await getStock(false);
+  let car=stock.items.find(x=>String(x.id||'')===identifier);
   if(!car){
-    const pageUrl = /^https?:/.test(url) ? url : decodeURIComponent(url);
-    car = stock.items.find(x=> x.carUrl === pageUrl) || { carUrl: pageUrl, title: 'سيارة المعرض', specs:{}, images:[], featureGroups:{interior:[],exterior:[],safety:[]}, colors:[] };
+    const wanted=normUrlKey(identifier);
+    car=stock.items.find(x=>normUrlKey(x.carUrl)===wanted);
   }
-  let html = '';
-  if(car.carUrl){
-    try { html = await fetchText(car.carUrl); } catch(e) { html = ''; }
-  }
-  const details = html ? extractSpecsData(html) : { specs:{}, interior:[], exterior:[], safety:[] };
-  const data = mergeCar(car, details, html);
-  cache.cars.set(key, { at: Date.now(), data });
+  if(!car) throw new Error('Selected vehicle was not found in the stock endpoint');
+  if(!car.id) throw new Error('Selected vehicle has no stable vehicle ID');
+  if(!car.carUrl) throw new Error('Selected vehicle has no canonical car URL');
+  let html='';
+  try{ html=await fetchText(car.carUrl); }catch(e){ html=''; }
+  const pageData=html?extractCanonicalCarPageData(html):{specs:{},quickSpecs:[],specGroups:[],featureGroups:{interior:[],exterior:[],safety:[]},images:[],colors:[]};
+  const data=mergeCar(car,pageData);
+  if(String(data.id||'')!==String(car.id||'')) throw new Error('Vehicle identity changed while reading car data');
+  if(normUrlKey(data.carUrl)!==normUrlKey(car.carUrl)) throw new Error('Vehicle URL changed while reading car data');
+  cache.cars.set(key,{at:Date.now(),data});
+  cache.cars.set(String(car.id),{at:Date.now(),data});
+  cache.cars.set(car.carUrl,{at:Date.now(),data});
   return data;
 }
 

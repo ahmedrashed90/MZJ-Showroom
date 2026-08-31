@@ -1,28 +1,27 @@
-# MZJ Showroom Screens v38
+# MZJ Showroom v39 — Exact Vehicle / Page Data Clean
 
-إعادة بناء نظيفة لواجهة الداش بورد وصفحات العرض.
+Clean rebuild of the dashboard-to-display vehicle binding.
 
-## التعديلات في v38
+## Core behavior
+- Each display is locked to the selected vehicle by stable vehicle/post ID.
+- The canonical car URL saved with that ID is the URL used by the QR code.
+- The display title comes from the exact selected car page; no generic "سيارة المعرض" fallback is shown.
+- Vehicle images are read only from the exact car gallery (`data-gallery-main` / `data-gallery-thumb`) and exact color image payloads. Related-car/page-wide images are not scraped.
+- When the selected car changes, saved manual images/color selection from the old car are cleared before the new car is saved.
+- Car-page data is read from the same structures rendered by the Panorama car plugin:
+  - quick/main specifications
+  - transmission group
+  - engine/performance group
+  - dimensions/weights group
+  - interior features
+  - exterior features
+  - safety features
+- Main specs are shown in full.
+- Technical groups and long feature lists rotate automatically so all available data can be displayed.
+- Duplicate specification concepts are removed from later groups if already present in main specs.
+- Repeated feature text is deduplicated across interior/exterior/safety sections.
+- Dashboard font-size controls and logo selection/size/position continue to apply live to display pages.
+- `forceRefresh` performs a real re-read of the exact vehicle.
 
-- صفحة العرض الجديدة تفصل صور السيارة عن المواصفات بالكامل.
-- مساحة الصور مربعة بنسبة `1:1` وتستخدم `object-fit: contain` بدون قص الصورة.
-- إزالة بلوك اسم المعرض من فوق الصور.
-- إزالة بلوك حالة «متاحة للحجز» من فوق الصور.
-- عدم عرض عدد سيارات الاستوك داخل صفحة العرض.
-- إعدادات الداش بورد تتحكم في حجم خط المواصفات على جميع الشاشات.
-- إضافة اختيار شعار من الداش بورد، مع التحكم في حجمه ومكانه يمين/يسار داخل جزء المواصفات.
-- الشعار المختار يُحفظ في `showroom_settings/display` ويظهر Live على صفحات العرض المفتوحة.
-- `forceRefresh` أصبح يُنفذ فعليًا في صفحة العرض عند تحديث الشاشة من الداش بورد.
-- صفحة العرض تحاول القراءة الحديثة أولًا، وتستخدم Firestore cache فقط كـ fallback عند فشل القراءة.
-- اختيار صور الشاشة لا يتم مسحه عند حفظ الشاشة إذا لم تكن لوحة الصور مفتوحة.
-
-## ملاحظة نطاق النسخة
-
-هذه النسخة تعيد بناء الداش بورد وصفحة العرض فقط. مصدر بيانات السيارات ومنطق API الحالي لم يتم استبداله في هذه المرحلة.
-
-## الروابط
-
-- `/dashboard`
-- `/screen?id=A1`
-- `/pdf?id=A1`
-- `/export?id=A1`
+## Identity rule
+There is no "closest" or similar-car fallback. If the requested ID cannot be found in the stock endpoint, `/api/read-car` returns an error instead of constructing a different vehicle.
