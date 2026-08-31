@@ -3,13 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>MZJ Showroom Screen v23</title>
+  <title>MZJ Showroom Screen</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
-<body class="display-body display screen-v11">
+<body class="showroom-display-body">
   <div id="root" class="empty-state"><div><h1>جاري تحميل شاشة المعرض...</h1><p>يرجى الانتظار</p></div></div>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -17,374 +18,261 @@
   <script src="firebase-config.js"></script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
-    var db = firebase.firestore();
+    var db=firebase.firestore();
 
-    function param(n){ var u = new URL(location.href); return u.searchParams.get(n) || ''; }
-    function esc(s){ return String(s || '').replace(/[&<>\"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]; }); }
-    function hash(str){ var h=2166136261; str=String(str||''); for(var i=0;i<str.length;i++){ h^=str.charCodeAt(i); h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); } return 'car_'+(h>>>0).toString(16); }
-    function cleanText(s){ return String(s || '').replace(/\s+/g,' ').trim(); }
-    function uniq(arr){ var seen={}; return (arr||[]).map(cleanText).filter(function(x){ if(!x || seen[x]) return false; seen[x]=1; return true; }); }
-    function chunks(arr, size){ var out=[]; arr=arr||[]; for(var i=0;i<arr.length;i+=size) out.push(arr.slice(i,i+size)); return out; }
-    function badImage(url){ url=String(url||'').toLowerCase(); return /default-car|placeholder|no-image|noimage|logo|mzj-logo|favicon|icon|cropped|avatar|watermark|loader|spinner|blank/.test(url); }
-    function canonColor(color){
-      color=String(color||'').toLowerCase();
-      if(/white|أبيض|ابيض|pearl|snow/.test(color)) return 'white';
-      if(/black|أسود|اسود/.test(color)) return 'black';
-      if(/silver|فضي/.test(color)) return 'silver';
-      if(/gray|grey|رمادي|رصاصي/.test(color)) return 'gray';
-      if(/red|أحمر|احمر/.test(color)) return 'red';
-      if(/blue|أزرق|ازرق/.test(color)) return 'blue';
-      if(/brown|mocha|بني|موكا|bronze|copper/.test(color)) return 'brown';
-      if(/beige|بيج|cream|ivory/.test(color)) return 'beige';
-      if(/green|أخضر|اخضر/.test(color)) return 'green';
-      if(/gold|ذهبي/.test(color)) return 'gold';
-      return color;
-    }
-    function colorMatch(url,color){
-      if(!color||color==='all') return true;
-      url=String(url||'').toLowerCase();
-      var key=canonColor(color);
-      var m={white:/white|ابيض|أبيض|\bwh\b|pearl|snow|polar/,black:/black|اسود|أسود|\bbk\b|blk/,silver:/silver|فضي|silv|\bsl\b/,gray:/gray|grey|رمادي|رصاصي|graphite|\bgy\b/,red:/red|احمر|أحمر|\brd\b|maroon|burgundy/,blue:/blue|ازرق|أزرق|\bbl\b|navy/,brown:/brown|mocha|بني|موكا|bronze|copper/,beige:/beige|بيج|cream|ivory/,green:/green|أخضر|اخضر/,gold:/gold|ذهبي|golden/};
-      var re = m[key];
-      if(re) return re.test(url);
-      var safe = String(color).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-      return safe ? new RegExp(safe,'i').test(url) : true;
+    function param(n){var u=new URL(location.href);return u.searchParams.get(n)||'';}
+    function esc(s){return String(s||'').replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];});}
+    function hash(str){var h=2166136261;str=String(str||'');for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);}return 'car_'+(h>>>0).toString(16);}
+    function cleanText(s){return String(s||'').replace(/\s+/g,' ').trim();}
+    function uniq(arr){var seen={};return (arr||[]).map(cleanText).filter(function(x){if(!x||seen[x])return false;seen[x]=1;return true;});}
+    function badImage(url){url=String(url||'').toLowerCase();return /default-car|placeholder|no-image|noimage|logo|mzj-logo|favicon|icon|cropped|avatar|watermark|loader|spinner|blank/.test(url);}
+
+    var screenId=(param('id')||'A1').toUpperCase();
+    var lastCarUrl='';
+    var lastForceRefresh=0;
+    var data=null;
+    var screenOptions={imageFilterColor:'all',imageFilterLabel:'',selectedImages:[],sliderImages:[],sliderMode:'all'};
+    var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right'};
+    var imageIndex=0;
+    var featureSection='interior';
+    var imageTimer=null;
+    var featureTimer=null;
+    var badLoaded={};
+
+    function empty(msg){
+      clearTimers();
+      var root=document.getElementById('root');
+      root.className='empty-state';
+      root.innerHTML='<div><h1>الشاشة '+esc(screenId)+'</h1><p>'+esc(msg||'لا توجد سيارة مرتبطة بهذه الشاشة حاليًا')+'</p></div>';
     }
 
-    var screenId = (param('id') || 'A1').toUpperCase();
-    var lastCarUrl = '';
-    var data = null;
-    var panels = [];
-    var panelIndex = 0;
-    var imageIndex = 0;
-    var imageTimer = null;
-    var specTimer = null;
-    var touchX = 0, touchY = 0, lastTap = 0;
-    var badLoaded = {};
-    var displaySettings = {featureFontSize:18, headerPosition:'right'};
-    var screenOptions = {imageFilterColor:'all', selectedImages:[], sliderImages:[], sliderMode:'all'};
+    function clearTimers(){if(imageTimer)clearInterval(imageTimer);if(featureTimer)clearInterval(featureTimer);imageTimer=null;featureTimer=null;}
 
     function applyDisplaySettings(){
-      var fs = Math.max(12, Math.min(26, parseInt(displaySettings.featureFontSize || 18, 10)));
-      document.body.style.setProperty('--mzj-feature-font-size', fs + 'px');
-      var top = document.querySelector('.v11-top');
-      if(top){
-        top.classList.toggle('logo-left', displaySettings.headerPosition === 'left');
-        top.classList.toggle('logo-right', displaySettings.headerPosition !== 'left');
+      var fs=Math.max(12,Math.min(26,parseInt(displaySettings.featureFontSize||18,10)));
+      var lw=Math.max(60,Math.min(260,parseInt(displaySettings.logoWidth||120,10)));
+      document.documentElement.style.setProperty('--showroom-spec-font',fs+'px');
+      document.documentElement.style.setProperty('--showroom-logo-width',lw+'px');
+      var logo=document.getElementById('showroomLogo');
+      if(logo){
+        if(displaySettings.logoDataUrl){logo.src=displaySettings.logoDataUrl;logo.classList.remove('hidden');}
+        else{logo.removeAttribute('src');logo.classList.add('hidden');}
       }
+      var head=document.getElementById('detailsHead');
+      if(head){head.classList.toggle('logo-left',displaySettings.logoPosition==='left');head.classList.toggle('logo-right',displaySettings.logoPosition!=='left');}
     }
 
     function listenDisplaySettings(){
       db.collection('showroom_settings').doc('display').onSnapshot(function(doc){
         if(doc.exists){
-          var d = doc.data() || {};
-          displaySettings.featureFontSize = d.featureFontSize || displaySettings.featureFontSize || 18;
-          displaySettings.headerPosition = d.headerPosition || displaySettings.headerPosition || 'right';
+          var d=doc.data()||{};
+          displaySettings.featureFontSize=d.featureFontSize||displaySettings.featureFontSize;
+          displaySettings.logoDataUrl=(d.logoDataUrl!==undefined)?d.logoDataUrl:displaySettings.logoDataUrl;
+          displaySettings.logoWidth=d.logoWidth||displaySettings.logoWidth;
+          displaySettings.logoPosition=d.logoPosition||d.headerPosition||displaySettings.logoPosition;
         }
         applyDisplaySettings();
-        var top = document.querySelector('.v11-top');
-        if(top){
-          top.classList.toggle('logo-left', displaySettings.headerPosition === 'left');
-          top.classList.toggle('logo-right', displaySettings.headerPosition !== 'left');
-        }
-      }, function(){ applyDisplaySettings(); });
+        if(data)updateLogoOnly();
+      },function(){applyDisplaySettings();});
     }
 
-    function empty(msg){
+    function updateLogoOnly(){
+      var logo=document.getElementById('showroomLogo');
+      if(!logo)return;
+      if(displaySettings.logoDataUrl){logo.src=displaySettings.logoDataUrl;logo.classList.remove('hidden');}
+      else{logo.classList.add('hidden');logo.removeAttribute('src');}
+      applyDisplaySettings();
+    }
+
+    function imagesForColor(color){
+      if(!data||!color||color==='all')return[];
+      var cols=[].concat(data.availableSliderColors||[],data.colors||[]),hit=null;
+      cols.some(function(c){
+        var vals=[c.token,c.hex,c.raw,c.external,c.label].filter(Boolean).map(function(x){return String(x).toLowerCase();});
+        if(vals.indexOf(String(color).toLowerCase())>=0){hit=c;return true;}return false;
+      });
+      return hit&&Array.isArray(hit.images)?uniq(hit.images).filter(function(u){return !badImage(u)&&!badLoaded[u];}):[];
+    }
+
+    function images(){
+      if(!data)return[];
+      var manual=uniq([].concat(screenOptions.sliderImages||[],screenOptions.selectedImages||[])).filter(function(u){return !badImage(u)&&!badLoaded[u];});
+      if(manual.length)return manual;
+      if(screenOptions.imageFilterColor&&screenOptions.imageFilterColor!=='all'){
+        var colorImgs=imagesForColor(screenOptions.imageFilterColor);
+        if(colorImgs.length)return colorImgs;
+      }
+      return uniq([].concat(data.images||[],data.image?[data.image]:[])).filter(function(u){return !badImage(u)&&!badLoaded[u];});
+    }
+
+    function currentImage(){var arr=images();if(!arr.length)return'';if(imageIndex>=arr.length)imageIndex=0;return arr[imageIndex];}
+
+    function externalColor(){
+      var label=cleanText(screenOptions.imageFilterLabel||'').replace(/\s+-\s+\d+\s+صورة.*$/,'');
+      if(screenOptions.imageFilterColor&&screenOptions.imageFilterColor!=='all'&&label&&!/اللون المحفوظ/i.test(label))return label;
+      var sp=(data&&data.specs)||{};
+      return sp['اللون الخارجي']||'';
+    }
+
+    function mainSpecs(sp){
+      var list=[
+        ['الفئة',sp['فئة السيارة']],['المحرك',sp['سعة المحرك']],['نوع الناقل',sp['نوع الناقل']],
+        ['الدفع',sp['نظام الدفع']],['نوع الوقود',sp['الوقود']],['عدد المقاعد',sp['عدد المقاعد']],
+        ['الحصان الميكانيكي',sp['الحصان الميكانيكي']],['استهلاك الوقود',sp['استهلاك صرفية البنزين']],['الضمان',sp['الضمان']]
+      ];
+      return list.filter(function(x){return cleanText(x[1]);});
+    }
+
+    function sectionData(){
+      var fg=(data&&data.featureGroups)||{};
+      return {
+        interior:uniq(fg.interior||[]),
+        exterior:uniq(fg.exterior||[]),
+        safety:uniq(fg.safety||[])
+      };
+    }
+
+    function sectionTitle(key){return key==='interior'?'المواصفات الداخلية':key==='exterior'?'المواصفات الخارجية':'مواصفات الأمان';}
+
+    function validSections(){var d=sectionData();return ['interior','exterior','safety'].filter(function(k){return d[k].length;});}
+
+    function featureHtml(){
+      var groups=sectionData(),valid=validSections();
+      if(!valid.length)return'';
+      if(valid.indexOf(featureSection)<0)featureSection=valid[0];
+      var items=(groups[featureSection]||[]).slice(0,6);
+      return '<div class="showroom-section-head"><strong>تفاصيل إضافية</strong></div>'+
+        '<div class="showroom-tabs">'+valid.map(function(k){return '<button class="showroom-tab '+(k===featureSection?'active':'')+'" data-section="'+k+'">'+sectionTitle(k)+'</button>';}).join('')+'</div>'+
+        '<div class="showroom-features">'+items.map(function(x){return '<div class="showroom-feature"><i>✓</i><span>'+esc(x)+'</span></div>';}).join('')+'</div>';
+    }
+
+    function logoHtml(){return '<div id="detailsHead" class="showroom-details-head '+(displaySettings.logoPosition==='left'?'logo-left':'logo-right')+'"><img id="showroomLogo" class="showroom-logo '+(displaySettings.logoDataUrl?'':'hidden')+'" '+(displaySettings.logoDataUrl?'src="'+esc(displaySettings.logoDataUrl)+'"':'')+' alt="الشعار"></div>';}
+
+    function qrHtml(){
+      return '<div class="showroom-bottom"><div class="showroom-bottom-copy"><strong>تفاصيل السيارة على جوالك</strong><span>امسح الكود لفتح صفحة السيارة</span></div><div class="showroom-scan"><div><b>MZJ CARS</b><span>عرض التفاصيل الكاملة</span></div><div id="showroomQr" class="showroom-qr"></div></div></div>';
+    }
+
+    function render(){
+      if(!data){empty();return;}
       clearTimers();
-      document.getElementById('root').className='empty-state';
-      document.getElementById('root').innerHTML='<div><h1>الشاشة '+esc(screenId)+'</h1><p>'+esc(msg || 'لا توجد سيارة مرتبطة بهذه الشاشة حاليًا')+'</p></div>';
+      var sp=data.specs||{};
+      var title=data.title||'سيارة المعرض';
+      var makeYear=[sp['ماركة السيارة'],sp['موديل السيارة']].filter(Boolean).join(' • ');
+      var sub=[sp['فئة السيارة'],sp['سعة المحرك'],sp['نوع الناقل']].filter(Boolean).join(' — ');
+      var price=data.price||sp['السعر']||'';
+      var specs=mainSpecs(sp);
+      var root=document.getElementById('root');
+      root.className='showroom-screen';
+      root.innerHTML='<section class="showroom-visual">'+
+        '<div class="showroom-stage"><img id="showroomCarImage" alt="صورة السيارة"></div>'+
+        '<div class="showroom-image-footer">'+(externalColor()?'<div class="showroom-color-label"><small>اللون الخارجي</small><strong>'+esc(externalColor())+'</strong></div>':'<span></span>')+'<div id="showroomDots" class="showroom-dots"></div></div>'+
+      '</section>'+
+      '<aside class="showroom-details">'+logoHtml()+
+        (makeYear?'<div class="showroom-kicker">'+esc(makeYear)+'</div>':'')+
+        '<h1>'+esc(title)+'</h1>'+(sub?'<div class="showroom-sub">'+esc(sub)+'</div>':'')+
+        (price?'<div class="showroom-price-card"><small>السعر شامل ضريبة القيمة المضافة</small><div class="showroom-price">'+esc(price)+' <span>ر.س</span></div></div>':'')+
+        '<div class="showroom-section-head"><strong>المواصفات الرئيسية</strong></div>'+
+        '<div class="showroom-spec-grid">'+specs.map(function(x){return '<div class="showroom-spec"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>';}).join('')+'</div>'+
+        '<div id="showroomFeatureSlot">'+featureHtml()+'</div>'+qrHtml()+'</aside>';
+      applyDisplaySettings();
+      bindRendered();
+      updateImageOnly();
+      renderQr();
+      startLoops();
     }
-    function offline(){ empty('جاري الاتصال وإعادة التحميل تلقائيًا'); }
 
-    function fetchFresh(url){
-      return fetch('/api/read-car?url='+encodeURIComponent(url))
-        .then(function(r){ if(!r.ok) throw new Error('read failed'); return r.json(); })
-        .then(function(d){
-          data = d;
-          panelIndex = 0;
-          imageIndex = 0;
-          badLoaded = {};
-          buildPanels();
-          render();
-          db.collection('showroom_car_cache').doc(hash(url)).set(d,{merge:true}).catch(function(){});
-          return d;
-        });
+    function renderQr(){
+      var el=document.getElementById('showroomQr');
+      if(!el||!data||!data.carUrl)return;
+      el.innerHTML='';
+      if(window.QRCode){
+        try{new QRCode(el,{text:data.carUrl,width:70,height:70,colorDark:'#201915',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}catch(e){}
+      }
     }
 
-    function loadCar(url){
-      db.collection('showroom_car_cache').doc(hash(url)).get().then(function(doc){
-        var cached = doc.exists ? (doc.data() || {}) : null;
-        var usable = cached && (cached.title || (cached.images && cached.images.length) || (cached.specs && Object.keys(cached.specs).length));
-        if(usable){
-          data = cached;
-          panelIndex = 0;
-          imageIndex = 0;
-          badLoaded = {};
-          buildPanels();
-          render();
-          fetchFresh(url).catch(function(){});
-        } else {
-          fetchFresh(url).catch(function(){ offline(); });
-        }
-      }).catch(function(){ fetchFresh(url).catch(function(){ offline(); }); });
+    function renderDots(){
+      var el=document.getElementById('showroomDots');if(!el)return;
+      var arr=images();
+      if(arr.length<2){el.innerHTML='';el.classList.add('hidden');return;}
+      el.classList.remove('hidden');
+      var max=Math.min(arr.length,12),current=imageIndex%arr.length;
+      el.innerHTML=Array.from({length:max}).map(function(_,i){return '<span class="showroom-dot '+(i===Math.min(current,max-1)?'active':'')+'"></span>';}).join('');
+    }
+
+    function updateImageOnly(){
+      var img=document.getElementById('showroomCarImage'),src=currentImage();
+      if(img){
+        if(src){img.src=src;img.classList.remove('hidden');}
+        else{img.removeAttribute('src');img.classList.add('hidden');}
+      }
+      renderDots();
+    }
+
+    function updateFeaturesOnly(){var slot=document.getElementById('showroomFeatureSlot');if(slot)slot.innerHTML=featureHtml();bindTabs();}
+
+    function bindTabs(){
+      Array.prototype.slice.call(document.querySelectorAll('.showroom-tab')).forEach(function(btn){
+        btn.onclick=function(e){e.stopPropagation();featureSection=btn.getAttribute('data-section')||featureSection;updateFeaturesOnly();};
+      });
+    }
+
+    function bindRendered(){
+      bindTabs();
+      var img=document.getElementById('showroomCarImage');
+      if(img)img.onerror=function(){if(this.src){badLoaded[this.src]=1;}imageIndex++;updateImageOnly();};
+    }
+
+    function startLoops(){
+      imageTimer=setInterval(function(){var arr=images();if(arr.length>1){imageIndex=(imageIndex+1)%arr.length;updateImageOnly();}},6000);
+      featureTimer=setInterval(function(){var valid=validSections();if(valid.length>1){var i=valid.indexOf(featureSection);featureSection=valid[(i+1+valid.length)%valid.length];updateFeaturesOnly();}},9000);
+    }
+
+    async function fetchFresh(url){
+      var r=await fetch('/api/read-car?url='+encodeURIComponent(url)+'&_='+Date.now(),{cache:'no-store'});
+      if(!r.ok)throw new Error('تعذر قراءة بيانات السيارة');
+      var d=await r.json();
+      if(d.carUrl&&url&&d.carUrl!==url){throw new Error('بيانات السيارة لا تطابق رابط الشاشة');}
+      data=d;imageIndex=0;badLoaded={};featureSection='interior';render();
+      db.collection('showroom_car_cache').doc(hash(url)).set(d,{merge:true}).catch(function(){});
+      return d;
+    }
+
+    async function loadCar(url){
+      try{await fetchFresh(url);return;}
+      catch(freshError){
+        try{
+          var doc=await db.collection('showroom_car_cache').doc(hash(url)).get();
+          var cached=doc.exists?(doc.data()||{}):null;
+          if(cached&&(cached.carUrl===url||!cached.carUrl)){
+            data=cached;imageIndex=0;badLoaded={};featureSection='interior';render();return;
+          }
+        }catch(ignore){}
+        empty('تعذر تحميل بيانات السيارة وسيتم إعادة المحاولة تلقائيًا');
+      }
     }
 
     function start(){
       db.collection('showroom_screens').doc(screenId).onSnapshot(function(doc){
-        if(!doc.exists || !doc.data().carUrl){ empty(); return; }
-        var s = doc.data();
-        screenOptions.imageFilterColor = s.imageFilterColor || 'all';
-        screenOptions.selectedImages = Array.isArray(s.selectedImages) ? s.selectedImages : [];
-        screenOptions.sliderImages = Array.isArray(s.sliderImages) ? s.sliderImages : screenOptions.selectedImages;
-        screenOptions.sliderMode = s.sliderMode || (screenOptions.sliderImages.length ? 'manual' : 'all');
-        if(s.carUrl !== lastCarUrl || !data){
-          lastCarUrl = s.carUrl;
-          loadCar(s.carUrl);
-        } else {
-          imageIndex = 0;
-          updateImageOnly();
-        }
-      }, function(){ offline(); });
+        if(!doc.exists||!doc.data().carUrl){lastCarUrl='';data=null;empty();return;}
+        var s=doc.data()||{};
+        screenOptions.imageFilterColor=s.imageFilterColor||'all';
+        screenOptions.imageFilterLabel=s.imageFilterLabel||'';
+        screenOptions.selectedImages=Array.isArray(s.selectedImages)?s.selectedImages:[];
+        screenOptions.sliderImages=Array.isArray(s.sliderImages)?s.sliderImages:screenOptions.selectedImages;
+        screenOptions.sliderMode=s.sliderMode||(screenOptions.sliderImages.length?'manual':'all');
+        var refreshToken=Number(s.forceRefresh||0);
+        var carChanged=s.carUrl!==lastCarUrl;
+        var forced=refreshToken!==lastForceRefresh;
+        lastCarUrl=s.carUrl;lastForceRefresh=refreshToken;
+        if(carChanged||!data){loadCar(s.carUrl);}
+        else if(forced){fetchFresh(s.carUrl).catch(function(){updateImageOnly();});}
+        else{imageIndex=0;updateImageOnly();}
+      },function(){empty('جاري الاتصال وإعادة التحميل تلقائيًا');});
     }
 
-    function specEntries(sp){
-      var order = [
-        'السعر','موديل السيارة','ماركة السيارة','نوع السيارة','فئة السيارة','هيكل السيارة','سعة المحرك','نوع الناقل','نظام الدفع','الوقود','استهلاك صرفية البنزين','الحصان الميكانيكي','عزم نيوتن','عدد السلندرات','عدد المقاعد','حجم الشنطة','اللون الخارجي','اللون الداخلي','الطول الكلي (مم)','العرض الكلي (مم)','الارتفاع الكلي (مم)','قاعدة العجلات (مم)','الضمان'
-      ];
-      var used={}, arr=[];
-      order.forEach(function(k){ if(sp && sp[k]){ arr.push([k,sp[k]]); used[k]=1; } });
-      Object.keys(sp||{}).forEach(function(k){ if(!used[k] && sp[k]) arr.push([k,sp[k]]); });
-      return arr;
-    }
-
-    function summaryPairs(sp){
-      return [
-        ['المحرك', sp['سعة المحرك'] || '--', '⚙'],
-        ['القير', sp['نوع الناقل'] || '--', '⌘'],
-        ['الدفع', sp['نظام الدفع'] || '--', '⛓'],
-        ['الصرفية', sp['استهلاك صرفية البنزين'] || '--', '⛽']
-      ];
-    }
-
-    function colorCss(label){
-      label = String(label||'').toLowerCase();
-      var hex = label.match(/#[0-9a-f]{3,6}\b/i);
-      if(hex) return hex[0];
-      if(/أسود|اسود|black/.test(label)) return '#111';
-      if(/أبيض|ابيض|white/.test(label)) return '#f8f8f8';
-      if(/فضي|silver/.test(label)) return '#c8c8c8';
-      if(/رمادي|gray|grey/.test(label)) return '#777';
-      if(/أحمر|احمر|red/.test(label)) return '#b82025';
-      if(/أزرق|ازرق|blue/.test(label)) return '#1e5aa8';
-      if(/بيج|beige/.test(label)) return '#d8c7ad';
-      if(/بني|موكا|brown/.test(label)) return '#7a4d37';
-      return '#d9d0c8';
-    }
-
-    function imagesForSiteColor(color){
-      if(!data || !color || color === 'all') return [];
-      var cols = [].concat(data.colors || [], data.availableSliderColors || []);
-      var hit = null;
-      cols.some(function(c){
-        var vals = [c.token, c.hex, c.raw, c.external, c.label].filter(Boolean).map(function(x){return String(x).toLowerCase();});
-        if(vals.indexOf(String(color).toLowerCase()) >= 0){ hit = c; return true; }
-        return false;
-      });
-      return hit && Array.isArray(hit.images) ? uniq(hit.images).filter(function(u){ return !badImage(u) && !badLoaded[u]; }) : [];
-    }
-
-    function images(){
-      var base = uniq((data && data.images) || []).filter(function(u){ return !badImage(u) && !badLoaded[u]; });
-      var selected = Array.isArray(screenOptions.sliderImages) ? screenOptions.sliderImages.filter(Boolean) : [];
-      if(!selected.length && Array.isArray(screenOptions.selectedImages)) selected = screenOptions.selectedImages.filter(Boolean);
-
-      // الصور المختارة من الداش بورد هي المصدر الأول لسلايدر الصور.
-      // نعرضها كما هي حتى لو ليست ضمن images العامة للسيارة.
-      if(selected.length){
-        var manual = uniq(selected).filter(function(u){ return !badImage(u) && !badLoaded[u]; });
-        if(manual.length) return manual;
-      }
-
-      var color = screenOptions.imageFilterColor || 'all';
-      if(color && color !== 'all'){
-        var siteImages = imagesForSiteColor(color);
-        if(siteImages.length) return siteImages;
-        var hasColorData = data && ((data.availableSliderColors||[]).length || (data.colors||[]).length);
-        var filtered = base.filter(function(u){ return colorMatch(u, color); });
-        return filtered.length ? filtered : (hasColorData ? [] : base);
-      }
-      return base;
-    }
-
-    function currentImage(){
-      var arr = images();
-      if(!arr.length) return '';
-      if(imageIndex >= arr.length) imageIndex = 0;
-      return arr[imageIndex];
-    }
-
-    function buildPanels(){
-      if(!data){ panels=[]; return; }
-      var sp = data.specs || {}, fg = data.featureGroups || {}, cols = data.colors || [];
-      panels = [];
-      var specs = specEntries(sp);
-      if(specs.length) panels.push({title:'المواصفات الرئيسية', sub:'بيانات السيارة الكاملة', kind:'specs', items:specs});
-      function addFeaturePages(title, sub, list){
-        list = uniq(list || []);
-        if(!list.length) return;
-        chunks(list, 12).forEach(function(part){
-          panels.push({title:title, sub:sub, kind:'features', items:part});
-        });
-      }
-      addFeaturePages('المواصفات الداخلية', '', fg.interior || []);
-      addFeaturePages('المواصفات الخارجية', '', fg.exterior || []);
-      addFeaturePages('مواصفات الأمان', '', fg.safety || []);
-      // الألوان تستخدم كفلتر لسلايدر الصور من الداش بورد فقط، ولا تظهر كسلايد بعد المواصفات.
-      if(!panels.length) panels.push({title:'بيانات السيارة', sub:'لا توجد بيانات كافية', kind:'empty', items:[]});
-    }
-
-    function specGrid(items){
-      if(!items || !items.length) return '<div class="v11-empty">لا توجد مواصفات ظاهرة.</div>';
-      return '<div class="v11-spec-grid">'+items.map(function(x){ return '<div class="v11-spec"><small>'+esc(x[0])+'</small><b>'+esc(x[1])+'</b></div>'; }).join('')+'</div>';
-    }
-
-    function hasPanelTitle(title){
-      return panels.some(function(p){ return p.title === title; });
-    }
-
-    function jumpToPanelTitle(title){
-      var idx = panels.findIndex(function(p){ return p.title === title; });
-      if(idx < 0) return;
-      panelIndex = idx;
-      updateSpecsOnly();
-      scheduleSpecAuto();
-    }
-
-    function sectionTabs(activeTitle){
-      var tabs = [
-        'المواصفات الداخلية',
-        'المواصفات الخارجية',
-        'مواصفات الأمان'
-      ].filter(hasPanelTitle);
-      if(!tabs.length) return '';
-      return '<div class="v11-section-tabs">'+tabs.map(function(t){
-        return '<button type="button" class="v11-tab '+(activeTitle===t?'active':'')+'" data-title="'+esc(t)+'">'+esc(t)+'</button>';
-      }).join('')+'</div>';
-    }
-
-    function featureCell(x){ return '<div class="v11-feature"><i>✓</i><span>'+esc(x)+'</span></div>'; }
-
-    function itemGrid(items){
-      if(!items || !items.length) return '<div class="v11-empty">لا توجد بيانات في هذا القسم.</div>';
-      var right = items.slice(0,6);
-      var left = items.slice(6,12);
-      return '<div class="v11-feature-columns"><div class="v11-feature-col">'+right.map(featureCell).join('')+'</div><div class="v11-feature-col">'+left.map(featureCell).join('')+'</div></div>';
-    }
-
-    function colorsHtml(cols, sp){
-      var list = (cols||[]).slice();
-      if(!list.length && (sp['اللون الخارجي'] || sp['اللون الداخلي'])) list.push({external:sp['اللون الخارجي'], internal:sp['اللون الداخلي']});
-      if(!list.length) return '<div class="v11-empty">الألوان حسب المتاح في المعرض.</div>';
-      return '<div class="v11-color-grid">'+list.map(function(c){ return '<div class="v11-color"><i style="background:'+esc(colorCss(c.external))+'"></i><div><b>'+esc(c.external||'لون خارجي')+'</b><em>'+esc(c.internal||'')+'</em></div></div>'; }).join('')+'</div>';
-    }
-
-    function panelHtml(){
-      var p = panels[panelIndex % panels.length] || panels[0];
-      if(!p) return '';
-      var body = '';
-      if(p.kind === 'specs') body = specGrid(p.items);
-      else if(p.kind === 'features') body = itemGrid(p.items);
-      else if(p.kind === 'colors') body = colorsHtml(p.items, data.specs||{});
-      else body = '<div class="v11-empty">لا توجد بيانات كافية لهذه السيارة.</div>';
-      return '<section class="v11-dynamic">'+sectionTabs(p.title)+(p.sub ? '<div class="v11-chip">'+esc(p.sub||'')+'</div>' : '')+'<h2>'+esc(p.title)+'</h2>'+body+'</section>';
-    }
-
-    function summaryHtml(){
-      var sp = data.specs || {};
-      var title = data.title || 'سيارة المعرض';
-      var makeModel = (sp['ماركة السيارة'] || '') + (sp['نوع السيارة'] ? ' '+sp['نوع السيارة'] : '');
-      var meta = [sp['موديل السيارة'], sp['فئة السيارة']].filter(Boolean).join(' ');
-      return '<section class="v11-summary"><h1>'+esc(title)+'</h1><h3>'+esc(makeModel || '')+'</h3><p>'+esc(meta || '')+'</p><div class="v11-summary-grid">'+summaryPairs(sp).map(function(p){ return '<div><i>'+esc(p[2])+'</i><small>'+esc(p[0])+'</small><b>'+esc(p[1])+'</b></div>'; }).join('')+'</div></section>';
-    }
-
-    function clearTimers(){ if(imageTimer) clearInterval(imageTimer); if(specTimer) clearTimeout(specTimer); imageTimer=null; specTimer=null; }
-
-    function startImageLoop(){
-      if(imageTimer) clearInterval(imageTimer);
-      imageTimer = setInterval(function(){ var arr=images(); if(arr.length > 1){ imageIndex=(imageIndex+1)%arr.length; updateImageOnly(); } }, 3000);
-    }
-
-    function scheduleSpecAuto(){
-      if(specTimer) clearTimeout(specTimer);
-      specTimer = setTimeout(function(){ nextPanel(1); }, 9000);
-    }
-
-    function nextPanel(step){
-      if(!panels.length) return;
-      panelIndex = (panelIndex + step + panels.length) % panels.length;
-      updateSpecsOnly();
-      scheduleSpecAuto();
-    }
-
-    function updateImageOnly(){
-      applyDisplaySettings();
-      var img = document.getElementById('v11CarImage');
-      var src = currentImage();
-      if(img && src) img.src = src;
-      var n = document.getElementById('v11ImageCount');
-      if(n){ var arr=images(); n.textContent = arr.length ? ((imageIndex%arr.length)+1)+' / '+arr.length : 'لا توجد صورة'; }
-    }
-
-    function updateSpecsOnly(){
-      var el = document.getElementById('v11SpecSlot');
-      if(el) el.innerHTML = panelHtml();
-      var n = document.getElementById('v11PanelCount');
-      if(n) n.textContent = ((panelIndex%panels.length)+1)+' / '+panels.length;
-      var prog = document.getElementById('v11Progress');
-      if(prog) prog.style.width = Math.round(((panelIndex%panels.length)+1)/panels.length*100)+'%';
-    }
-
-    function render(){
-      if(!data){ empty(); return; }
-      if(!panels.length) buildPanels();
-      var root = document.getElementById('root');
-      root.className = 'v11-shell fade-in';
-      var src = currentImage();
-      root.innerHTML = '<div class="v11-bg"></div>'+
-        '<header class="v11-top '+(displaySettings.headerPosition==='left'?'logo-left':'logo-right')+'"><div class="v11-brand"><img src="assets/mzj-mark.png" alt="MZJ"><span>مجموعة محمد ذعار العجمي للسيارات</span></div></header>'+
-        '<main class="v11-main">'+
-          '<section class="v11-photo"><div class="v11-photo-stage">'+(src?'<img id="v11CarImage" src="'+esc(src)+'" alt="car">':'<div class="v11-no-photo">لا توجد صورة معتمدة لهذه السيارة</div>')+'</div><div class="v11-photo-foot"><span id="v11ImageCount"></span><div class="v11-imgbar"><i></i></div></div></section>'+
-          '<section class="v11-right">'+summaryHtml()+'<div id="v11SpecSlot">'+panelHtml()+'</div></section>'+
-        '</main>'+
-        '<footer class="v11-footer"><span id="v11PanelCount"></span><div class="v11-progress"><i id="v11Progress"></i></div></footer>';
-      applyDisplaySettings();
-      var img = document.getElementById('v11CarImage');
-      if(img){
-        img.onerror = function(){ badLoaded[this.src]=1; updateImageOnly(); };
-      }
-      updateImageOnly();
-      updateSpecsOnly();
-      startImageLoop();
-      scheduleSpecAuto();
-    }
-
-    function bind(){
-      var root = document.getElementById('root');
-      root.addEventListener('click', function(e){
-        var tab = e.target && e.target.closest ? e.target.closest('.v11-tab') : null;
-        if(tab){ e.preventDefault(); e.stopPropagation(); jumpToPanelTitle(tab.getAttribute('data-title') || ''); return; }
-        var now=Date.now(); if(now-lastTap<250) return; lastTap=now; nextPanel(1);
-      });
-      root.addEventListener('touchstart', function(e){ if(!e.touches[0]) return; touchX=e.touches[0].clientX; touchY=e.touches[0].clientY; }, {passive:true});
-      root.addEventListener('touchend', function(e){ if(!e.changedTouches[0]) return; var dx=e.changedTouches[0].clientX-touchX, dy=e.changedTouches[0].clientY-touchY; if(Math.abs(dx)>55 && Math.abs(dx)>Math.abs(dy)) nextPanel(dx<0?1:-1); }, {passive:true});
-      document.addEventListener('keydown', function(e){ if(e.key==='ArrowLeft') nextPanel(1); if(e.key==='ArrowRight') nextPanel(-1); });
-    }
-
-    bind();
     listenDisplaySettings();
     start();
-    setInterval(function(){ if(lastCarUrl) fetchFresh(lastCarUrl).catch(function(){}); }, 10*60*1000);
+    setInterval(function(){if(lastCarUrl)fetchFresh(lastCarUrl).catch(function(){});},10*60*1000);
   </script>
 </body>
 </html>

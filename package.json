@@ -1,6 +1,6 @@
 {
-  "name": "mzj-showroom-screens-vercel",
-  "version": "37.0.0",
+  "name": "mzj-showroom-display-dashboard-rebuild",
+  "version": "38.0.0",
   "private": true,
   "main": "server.js",
   "scripts": {
