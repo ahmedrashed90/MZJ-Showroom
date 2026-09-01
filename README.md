@@ -1,6 +1,6 @@
-# MZJ Showroom v41 — Premium Independent Screens Clean
+# MZJ Showroom v42 — Centered Image Arrows Clean
 
-Full clean rebuild of the showroom display/dashboard layer using the approved v41 presentation and the current MZJ vehicle + stock contracts as references.
+Full clean rebuild of the showroom display/dashboard layer using the approved v42 presentation and the current MZJ vehicle + stock contracts as references.
 
 ## Vehicle identity
 - Every screen document is independent: `showroom_screens/A1`, `showroom_screens/A2`, etc.
@@ -23,7 +23,7 @@ Full clean rebuild of the showroom display/dashboard layer using the approved v4
 
 ## Display design
 - Square 1:1 image area with `object-fit: contain`.
-- Manual previous/next image arrows at bottom-left plus automatic image rotation.
+- Large manual previous/next image arrows centered vertically on the left and right edges of the 1:1 vehicle image area, plus automatic image rotation.
 - Compact price block.
 - Visible available-color chips with name + swatch.
 - Fixed “المواصفات الفنية” heading; technical content changes only when a technical tab is clicked.
