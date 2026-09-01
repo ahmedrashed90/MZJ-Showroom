@@ -6,15 +6,15 @@
   <title>إدارة شاشات المعرض | MZJ Showroom</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="dashboard-v41-body">
   <div id="login" class="login hidden">
     <div>
       <div class="login-logo">MZJ</div>
       <h2>دخول إدارة شاشات المعرض</h2>
-      <p class="subtitle">إدارة ربط شاشات المعرض بالسيارات والتحكم في شكل العرض.</p>
+      <p class="subtitle">إدارة كل شاشة وربطها بسيارتها بشكل مستقل.</p>
       <input id="email" type="email" placeholder="البريد الإلكتروني" autocomplete="username">
       <input id="pass" type="password" placeholder="كلمة المرور" autocomplete="current-password">
       <button class="btn primary full" onclick="login()">دخول</button>
@@ -24,115 +24,69 @@
 
   <div id="app" class="app hidden">
     <aside class="side">
-      <div class="brand-block">
-        <div class="brand">MZJ</div>
-        <div class="brand-sub">محمد بن ذعار العجمي<br>شاشات المعرض</div>
-      </div>
-      <nav class="nav">
-        <a class="active">▣ إدارة الشاشات</a>
-        <span class="nav-sep"></span>
-        <a onclick="logout()">⇱ تسجيل الخروج</a>
-      </nav>
+      <div class="brand-block"><div class="brand">MZJ</div><div class="brand-sub">محمد بن ذعار العجمي<br>شاشات المعرض</div></div>
+      <nav class="nav"><a class="active">▣ إدارة الشاشات</a><span class="nav-sep"></span><a onclick="logout()">⇱ تسجيل الخروج</a></nav>
     </aside>
 
-    <main class="main">
+    <main class="main dashboard-v41-main">
       <div class="topbar">
-        <div class="page-title">
-          <div class="title-icon">▣</div>
-          <div>
-            <h1>إدارة شاشات المعرض</h1>
-            <div class="subtitle">اختار السيارة والصور، وحدد شكل العرض مرة واحدة ليظهر على كل الشاشات.</div>
-          </div>
-        </div>
-        <div class="user">
-          <div class="user-name" id="userName">MZJ Admin</div>
-          <div class="avatar" id="avatar">M</div>
-        </div>
+        <div class="page-title"><div class="title-icon">▣</div><div><h1>إدارة شاشات المعرض</h1><div class="subtitle">اختر شاشة، اربط السيارة، راجع كل البيانات ثم طبّقها على الشاشة.</div></div></div>
+        <div class="user"><div class="user-name" id="userName">MZJ Admin</div><div class="avatar" id="avatar">M</div></div>
       </div>
 
-      <section class="cards">
-        <div class="card metric"><div><b>آخر مزامنة</b><div id="lastSync" class="subtitle">--</div><div class="success">مزامنة مباشرة</div></div><div class="icon">◷</div></div>
-        <div class="card metric"><div><b>سيارات الاستوك</b><div class="num" id="stockCount">0</div><small>سيارة</small></div><div class="icon">🚘</div></div>
-        <div class="card metric"><div><b>شاشات مرتبطة</b><div class="num green" id="activeCount">0</div><small>شاشة</small></div><div class="icon">🔗</div></div>
-        <div class="card metric"><div><b>شاشات فارغة</b><div class="num orange" id="emptyCount">0</div><small>شاشة</small></div><div class="icon">▭</div></div>
+      <section class="cards dashboard-v41-metrics">
+        <div class="card metric"><div><b>السيارات المتاحة للنظام</b><div class="num" id="stockCount">0</div><small>سيارة</small></div><div class="icon">🚘</div></div>
+        <div class="card metric"><div><b>الشاشات المرتبطة</b><div class="num green" id="activeCount">0</div><small>شاشة</small></div><div class="icon">▣</div></div>
+        <div class="card metric"><div><b>آخر تحديث</b><div id="lastSync" class="metric-time">--</div><small>من مصدر السيارات</small></div><div class="icon">◷</div></div>
       </section>
 
-      <section class="panel display-settings">
-        <div class="settings-head">
-          <div>
-            <h3>إعدادات صفحات العرض</h3>
-            <div class="subtitle">الإعدادات دي مشتركة بين كل الشاشات وتتطبق Live بعد الحفظ.</div>
-          </div>
-          <button class="btn primary" onclick="saveDisplaySettings()">حفظ إعدادات العرض</button>
-        </div>
-
+      <section class="panel display-settings dashboard-v41-settings">
+        <div class="settings-head"><div><h3>إعدادات شكل العرض</h3><div class="subtitle">الشعار وحجم الخط إعدادات مشتركة وتظهر Live على كل صفحات العرض.</div></div><button class="btn primary" onclick="saveDisplaySettings()">حفظ إعدادات العرض</button></div>
         <div class="settings-grid settings-grid-4">
-          <div class="setting-box">
-            <label>حجم خط المواصفات</label>
-            <div class="font-control">
-              <button class="btn small" onclick="changeFont(-1)">− تصغير</button>
-              <strong id="fontSizeView">18px</strong>
-              <button class="btn small" onclick="changeFont(1)">+ تكبير</button>
-            </div>
-          </div>
-
-          <div class="setting-box">
-            <label>الشعار</label>
-            <input id="logoFile" class="hidden" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="chooseLogoFile(this)">
-            <div class="logo-picker-row">
-              <button class="btn small primary" onclick="document.getElementById('logoFile').click()">اختيار شعار</button>
-              <button class="btn small" onclick="removeLogo()">إزالة الشعار</button>
-            </div>
-            <div id="logoPreviewBox" class="logo-preview empty"><span>لا يوجد شعار مختار</span></div>
-          </div>
-
-          <div class="setting-box">
-            <label>حجم الشعار</label>
-            <div class="font-control">
-              <button class="btn small" onclick="changeLogoSize(-10)">− تصغير</button>
-              <strong id="logoSizeView">120px</strong>
-              <button class="btn small" onclick="changeLogoSize(10)">+ تكبير</button>
-            </div>
-          </div>
-
-          <div class="setting-box">
-            <label>مكان الشعار في جزء المواصفات</label>
-            <select class="filter full-control" id="logoPosition">
-              <option value="right">يمين</option>
-              <option value="left">يسار</option>
-            </select>
-          </div>
+          <div class="setting-box"><label>حجم خط المواصفات</label><div class="font-control"><button class="btn small" onclick="changeFont(-1)">−</button><strong id="fontSizeView">18px</strong><button class="btn small" onclick="changeFont(1)">+</button></div></div>
+          <div class="setting-box"><label>الشعار</label><input id="logoFile" class="hidden" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="chooseLogoFile(this)"><div class="logo-picker-row"><button class="btn small primary" onclick="document.getElementById('logoFile').click()">اختيار شعار</button><button class="btn small" onclick="removeLogo()">إزالة</button></div><div id="logoPreviewBox" class="logo-preview empty"><span>لا يوجد شعار</span></div></div>
+          <div class="setting-box"><label>حجم الشعار</label><div class="font-control"><button class="btn small" onclick="changeLogoSize(-10)">−</button><strong id="logoSizeView">120px</strong><button class="btn small" onclick="changeLogoSize(10)">+</button></div></div>
+          <div class="setting-box"><label>مكان الشعار</label><select class="filter full-control" id="logoPosition"><option value="right">يمين</option><option value="left">يسار</option></select></div>
         </div>
       </section>
 
-      <section class="workspace">
-        <div class="panel table-panel">
-          <div class="toolbar">
-            <button class="btn primary" onclick="refreshAll()">⟳ تحديث الكل</button>
-            <button class="btn" onclick="loadStock(true)">تحميل الاستوك</button>
-            <input class="search" id="search" oninput="renderRows()" placeholder="بحث عن شاشة أو سيارة">
-            <select class="filter" id="filter" onchange="renderRows()">
-              <option value="all">كل الحالات</option>
-              <option value="active">نشطة</option>
-              <option value="empty">فارغة</option>
-            </select>
+      <section class="panel screen-selector-panel">
+        <div class="screen-selector-head"><div><h3>اختر الشاشة</h3><div class="subtitle">كل شاشة لها سيارة وإعدادات صور مستقلة تمامًا.</div></div><div class="screen-selector-actions"><button class="btn small" onclick="openSelectedScreen()">فتح صفحة العرض ↗</button><button class="btn small" onclick="refreshSelectedScreen()">تحديث الشاشة</button></div></div>
+        <div id="screenTabs" class="screen-tabs"></div>
+      </section>
+
+      <div id="statusMsg" class="status-msg hidden"></div>
+
+      <section class="dashboard-v41-workspace">
+        <div class="panel vehicle-control-panel">
+          <div class="control-panel-head"><div><span class="eyebrow">الشاشة المحددة</span><h2 id="selectedScreenTitle">A1</h2></div><span id="selectedScreenStatus" class="badge empty">فارغة</span></div>
+
+          <div class="control-block">
+            <label class="control-label">اختيار السيارة</label>
+            <div class="vehicle-search-wrap"><input id="vehicleSearch" class="vehicle-search" placeholder="ابحث باسم السيارة أو الموديل..." oninput="renderVehicleResults()" onfocus="renderVehicleResults()"><button class="btn small" onclick="loadStock(true)">↻</button></div>
+            <div id="vehicleResults" class="vehicle-results"></div>
           </div>
-          <div id="statusMsg" class="status-msg hidden"></div>
-          <table class="table">
-            <thead><tr><th>الكود</th><th>السيارة</th><th>الحالة</th><th>صورة</th><th>الإجراءات</th></tr></thead>
-            <tbody id="rows"></tbody>
-          </table>
+
+          <div id="selectedVehicleCard" class="selected-vehicle-card empty"><div>لم يتم اختيار سيارة لهذه الشاشة.</div></div>
+
+          <div id="vehicleControls" class="vehicle-controls hidden">
+            <div class="control-block"><label class="control-label">صور العرض حسب اللون</label><select id="colorSelect" class="filter full-control" onchange="changeColorFilter()"><option value="all">كل صور السيارة</option></select><div id="colorChips" class="dashboard-color-chips"></div></div>
+            <div class="control-block image-picker-block"><div class="control-label-row"><label class="control-label">الصور المختارة يدويًا</label><button class="link-btn" onclick="clearImageSelection()">استخدام الصور تلقائيًا</button></div><div id="imagePicker" class="dashboard-image-picker"></div></div>
+            <div class="save-screen-actions"><button class="btn primary" onclick="saveSelectedScreen()">حفظ وتطبيق على الشاشة</button><button class="btn" onclick="reloadSelectedVehicle()">إعادة قراءة السيارة</button></div>
+          </div>
         </div>
 
-        <div class="panel preview">
-          <div class="preview-head">
-            <h3>معاينة صفحة العرض</h3>
-            <div class="preview-actions">
-              <button class="btn small" onclick="openSelectedPdf()">PDF</button>
-              <button class="btn icon-btn" onclick="openSelectedScreen()">↗</button>
-            </div>
+        <div class="dashboard-v41-right">
+          <div class="panel live-preview-panel">
+            <div class="preview-head"><div><h3>معاينة الشاشة الفعلية</h3><div class="subtitle">المعاينة تقرأ نفس Screen ID ونفس السيارة المحفوظة.</div></div><div class="preview-actions"><button class="btn small" onclick="refreshPreviewFrame()">↻</button><button class="btn icon-btn" onclick="openSelectedScreen()">↗</button></div></div>
+            <div class="preview-frame-wrap"><iframe id="screenPreview" title="معاينة شاشة المعرض"></iframe><div id="previewDraftNotice" class="preview-draft-notice hidden">يوجد اختيار غير محفوظ — اضغط «حفظ وتطبيق على الشاشة» لرؤيته هنا.</div></div>
           </div>
-          <div id="previewBox" class="screen-card new-preview"><div class="section center-muted">اختر معاينة من أحد الصفوف.</div></div>
+
+          <div class="panel vehicle-inspector-panel">
+            <div class="inspector-head"><div><h3>كل بيانات السيارة المختارة</h3><div id="inspectorSub" class="subtitle">اختار سيارة لعرض بياناتها كاملة.</div></div></div>
+            <div id="inspectorTabs" class="inspector-tabs"></div>
+            <div id="inspectorBody" class="inspector-body"><div class="center-muted">لا توجد سيارة محددة.</div></div>
+          </div>
         </div>
       </section>
     </main>
@@ -144,424 +98,161 @@
   <script src="firebase-config.js"></script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
-    var auth = firebase.auth();
-    var db = firebase.firestore();
-    var CODES = ['A1','A2','A3','A4','A5','A6','A7','A8','A9','A10'];
-    var screens = {};
-    var selectedScreen = '';
-    var stockItems = [];
-    var previewDataCache = null;
-    var displaySettings = {
-      featureFontSize: 18,
-      logoDataUrl: '',
-      logoWidth: 120,
-      logoPosition: 'right'
-    };
+    var auth=firebase.auth(),db=firebase.firestore();
+    var CODES=['A1','A2','A3','A4','A5','A6','A7','A8','A9','A10'];
+    var screens={},stockItems=[],selectedScreen='A1',selectedCar=null,selectedCarData=null,inspectorTab='overview';
+    var draft={color:'all',colorLabel:'',selectedImages:[]},draftDirty=false;
+    var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right'};
 
-    function $(id){ return document.getElementById(id); }
-    function esc(s){ return String(s || '').replace(/[&<>\"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]; }); }
-    function hash(str){ var h=2166136261; str=String(str||''); for(var i=0;i<str.length;i++){ h^=str.charCodeAt(i); h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); } return 'car_'+(h>>>0).toString(16); }
-    function nowText(){ return new Date().toLocaleString('ar-SA',{hour:'2-digit',minute:'2-digit',year:'numeric',month:'short',day:'numeric'}); }
-    function setMsg(text,type){ var el=$('statusMsg'); if(!text){ el.classList.add('hidden'); return; } el.className='status-msg '+(type||'info'); el.textContent=text; }
-    function login(){ auth.signInWithEmailAndPassword($('email').value,$('pass').value).catch(function(e){ $('loginMsg').innerText=e.message; }); }
-    function logout(){ auth.signOut(); }
+    function $(id){return document.getElementById(id);}
+    function esc(s){return String(s||'').replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];});}
+    function cleanText(s){return String(s||'').replace(/\s+/g,' ').trim();}
+    function norm(s){return cleanText(s).toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[ًٌٍَُِّْـ]/g,'').replace(/[^\u0600-\u06ff0-9a-z]+/g,' ').replace(/\s+/g,' ').trim();}
+    function hash(str){var h=2166136261;str=String(str||'');for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);}return 'car_'+(h>>>0).toString(16);}
+    function setMsg(text,type){var el=$('statusMsg');if(!text){el.classList.add('hidden');return;}el.className='status-msg '+(type||'info');el.textContent=text;}
+    function nowText(){return new Date().toLocaleString('ar-SA',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+    function login(){auth.signInWithEmailAndPassword($('email').value,$('pass').value).catch(function(e){$('loginMsg').innerText=e.message;});}
+    function logout(){auth.signOut();}
 
-    auth.onAuthStateChanged(function(u){
-      $('login').classList.toggle('hidden',!!u);
-      $('app').classList.toggle('hidden',!u);
-      if(!u) return;
-      $('userName').textContent=u.email||'MZJ Admin';
-      db.collection('users').doc(u.uid).get().then(function(d){ if(d.exists && d.data().name) $('userName').textContent=d.data().name; }).catch(function(){});
+    auth.onAuthStateChanged(function(user){
+      $('login').classList.toggle('hidden',!!user);$('app').classList.toggle('hidden',!user);if(!user)return;
+      $('userName').textContent=user.email||'MZJ Admin';$('avatar').textContent=(user.email||'M').charAt(0).toUpperCase();
+      db.collection('users').doc(user.uid).get().then(function(d){if(d.exists&&d.data().name)$('userName').textContent=d.data().name;}).catch(function(){});
       init();
     });
 
-    async function loadDisplaySettings(){
-      try{
-        var d=await db.collection('showroom_settings').doc('display').get();
-        if(d.exists){
-          var saved=d.data()||{};
-          if(saved.headerPosition && !saved.logoPosition) saved.logoPosition=saved.headerPosition;
-          displaySettings=Object.assign(displaySettings,saved);
-        }
-      }catch(e){}
-      renderDisplaySettings();
-    }
-
-    function renderDisplaySettings(){
-      displaySettings.featureFontSize=Math.max(12,Math.min(26,parseInt(displaySettings.featureFontSize||18,10)));
-      displaySettings.logoWidth=Math.max(60,Math.min(260,parseInt(displaySettings.logoWidth||120,10)));
-      displaySettings.logoPosition=(displaySettings.logoPosition==='left')?'left':'right';
-      $('fontSizeView').textContent=displaySettings.featureFontSize+'px';
-      $('logoSizeView').textContent=displaySettings.logoWidth+'px';
-      $('logoPosition').value=displaySettings.logoPosition;
-      var box=$('logoPreviewBox');
-      if(displaySettings.logoDataUrl){
-        box.className='logo-preview';
-        box.innerHTML='<img src="'+esc(displaySettings.logoDataUrl)+'" alt="الشعار">';
-      }else{
-        box.className='logo-preview empty';
-        box.innerHTML='<span>لا يوجد شعار مختار</span>';
-      }
-      if(selectedScreen && previewDataCache) renderPreview(previewDataCache,selectedScreen);
-    }
-
-    function changeFont(step){
-      displaySettings.featureFontSize=Math.max(12,Math.min(26,parseInt(displaySettings.featureFontSize||18,10)+step));
-      renderDisplaySettings();
-    }
-
-    function changeLogoSize(step){
-      displaySettings.logoWidth=Math.max(60,Math.min(260,parseInt(displaySettings.logoWidth||120,10)+step));
-      renderDisplaySettings();
-    }
-
-    function removeLogo(){
-      displaySettings.logoDataUrl='';
-      var f=$('logoFile'); if(f) f.value='';
-      renderDisplaySettings();
-    }
-
-    function chooseLogoFile(input){
-      var file=input && input.files && input.files[0];
-      if(!file) return;
-      if(!/^image\//i.test(file.type||'')){ setMsg('الملف المختار لازم يكون صورة.','error'); return; }
-      var reader=new FileReader();
-      reader.onload=function(e){
-        var img=new Image();
-        img.onload=function(){
-          try{
-            var maxSide=900;
-            var scale=Math.min(1,maxSide/Math.max(img.naturalWidth||1,img.naturalHeight||1));
-            var w=Math.max(1,Math.round((img.naturalWidth||1)*scale));
-            var h=Math.max(1,Math.round((img.naturalHeight||1)*scale));
-            var canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
-            canvas.getContext('2d').drawImage(img,0,0,w,h);
-            var data=canvas.toDataURL('image/webp',0.9);
-            if(!data || data.length>520000){ data=canvas.toDataURL('image/jpeg',0.80); }
-            if(data.length>650000){ setMsg('حجم الشعار كبير جدًا. اختار صورة أصغر.','error'); return; }
-            displaySettings.logoDataUrl=data;
-            renderDisplaySettings();
-            setMsg('تم اختيار الشعار. اضغط حفظ إعدادات العرض لتطبيقه على الشاشات.','info');
-          }catch(err){ setMsg('تعذر تجهيز الشعار: '+err.message,'error'); }
-        };
-        img.onerror=function(){ setMsg('تعذر قراءة صورة الشعار.','error'); };
-        img.src=e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    async function saveDisplaySettings(){
-      try{
-        displaySettings.logoPosition=$('logoPosition').value==='left'?'left':'right';
-        displaySettings.featureFontSize=Math.max(12,Math.min(26,parseInt(displaySettings.featureFontSize||18,10)));
-        displaySettings.logoWidth=Math.max(60,Math.min(260,parseInt(displaySettings.logoWidth||120,10)));
-        await db.collection('showroom_settings').doc('display').set({
-          featureFontSize:displaySettings.featureFontSize,
-          logoDataUrl:displaySettings.logoDataUrl||'',
-          logoWidth:displaySettings.logoWidth,
-          logoPosition:displaySettings.logoPosition,
-          headerPosition:displaySettings.logoPosition,
-          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-        },{merge:true});
-        setMsg('تم حفظ إعدادات العرض. الشعار والخط هيتحدثوا على صفحات العرض تلقائيًا.','ok');
-        renderDisplaySettings();
-      }catch(e){ setMsg('فشل حفظ إعدادات العرض: '+e.message,'error'); }
-    }
-
-    function localDefaults(){
-      CODES.forEach(function(c){
-        if(!screens[c]) screens[c]={screenCode:c,title:'الشاشة '+c,carUrl:'',carId:'',status:'empty',forceRefresh:0,selectedImages:[],sliderImages:[],sliderMode:'all',imageFilterColor:'all'};
-      });
-    }
-
     async function init(){
-      localDefaults(); renderRows(); updateStats();
-      await loadDisplaySettings();
-      await loadStock(false);
-      await loadScreens();
+      await Promise.all([loadDisplaySettings(),loadScreens(),loadStock(false)]);
+      selectScreen(selectedScreen);
     }
 
-    async function ensureDocs(){
-      for(var i=0;i<CODES.length;i++){
-        var c=CODES[i],ref=db.collection('showroom_screens').doc(c),s=await ref.get();
-        if(!s.exists) await ref.set({screenCode:c,title:'الشاشة '+c,carUrl:'',carId:'',status:'empty',forceRefresh:0},{merge:true});
-      }
+    async function loadDisplaySettings(){
+      try{var d=await db.collection('showroom_settings').doc('display').get();if(d.exists){var saved=d.data()||{};if(saved.headerPosition&&!saved.logoPosition)saved.logoPosition=saved.headerPosition;displaySettings=Object.assign(displaySettings,saved);}}catch(e){}
+      renderDisplaySettings();
+    }
+    function renderDisplaySettings(){
+      $('fontSizeView').textContent=displaySettings.featureFontSize+'px';$('logoSizeView').textContent=displaySettings.logoWidth+'px';$('logoPosition').value=displaySettings.logoPosition||'right';
+      var box=$('logoPreviewBox');if(displaySettings.logoDataUrl){box.className='logo-preview';box.innerHTML='<img src="'+esc(displaySettings.logoDataUrl)+'" alt="logo">';}else{box.className='logo-preview empty';box.innerHTML='<span>لا يوجد شعار</span>';}
+    }
+    function changeFont(step){displaySettings.featureFontSize=Math.max(12,Math.min(26,Number(displaySettings.featureFontSize||18)+step));renderDisplaySettings();}
+    function changeLogoSize(step){displaySettings.logoWidth=Math.max(60,Math.min(280,Number(displaySettings.logoWidth||120)+step));renderDisplaySettings();}
+    function removeLogo(){displaySettings.logoDataUrl='';renderDisplaySettings();}
+    function chooseLogoFile(input){
+      var file=input.files&&input.files[0];if(!file)return;if(file.size>900*1024){setMsg('حجم الشعار كبير. اختار ملف أقل من 900KB.','error');input.value='';return;}
+      var reader=new FileReader();reader.onload=function(){displaySettings.logoDataUrl=String(reader.result||'');renderDisplaySettings();};reader.readAsDataURL(file);
+    }
+    async function saveDisplaySettings(){
+      displaySettings.logoPosition=$('logoPosition').value||'right';
+      try{await db.collection('showroom_settings').doc('display').set(Object.assign({},displaySettings,{updatedAt:firebase.firestore.FieldValue.serverTimestamp()}),{merge:true});setMsg('تم حفظ إعدادات العرض وتطبيقها على كل الشاشات.','ok');refreshPreviewFrame();}catch(e){setMsg('تعذر حفظ إعدادات العرض: '+e.message,'error');}
     }
 
     async function loadScreens(){
-      try{
-        await ensureDocs();
-        var snap=await db.collection('showroom_screens').get();
-        screens={}; snap.forEach(function(d){ screens[d.id]=d.data(); });
-        localDefaults(); renderRows(); updateStats(); setMsg('','');
-      }catch(e){ localDefaults(); renderRows(); updateStats(); setMsg('تعذر تحميل Firestore: '+e.message,'error'); }
+      try{var snap=await db.collection('showroom_screens').get();screens={};snap.forEach(function(doc){screens[doc.id.toUpperCase()]=doc.data()||{};});}catch(e){screens={};}
+      renderScreenTabs();updateMetrics();
+    }
+    function updateMetrics(){
+      $('stockCount').textContent=stockItems.length;var active=CODES.filter(function(c){var s=screens[c]||{};return !!(s.carId||s.carUrl);}).length;$('activeCount').textContent=active;
+    }
+    function renderScreenTabs(){
+      $('screenTabs').innerHTML=CODES.map(function(code){var s=screens[code]||{},active=!!(s.carId||s.carUrl),selected=code===selectedScreen;return '<button type="button" class="screen-tab '+(selected?'selected ':'')+(active?'active':'empty')+'" onclick="selectScreen(\''+code+'\')"><span class="screen-code">'+code+'</span><small>'+esc(active?(s.carName||'مرتبطة بسيارة'):'فارغة')+'</small><i></i></button>';}).join('');
     }
 
     async function loadStock(force){
-      try{
-        setMsg('جاري تحميل الاستوك...','info');
-        var r=await fetch('/api/stock'+(force?'?force=1':''));
-        if(!r.ok) throw new Error('تعذر تحميل الاستوك');
-        var result=await r.json(); stockItems=result.items||[];
-        $('stockCount').innerText=stockItems.length;
-        renderRows(); setMsg('تم تحميل '+stockItems.length+' سيارة.','ok');
-      }catch(e){ setMsg('تعذر تحميل الاستوك: '+e.message,'error'); }
+      setMsg('جاري تحميل السيارات...','info');
+      try{var r=await fetch('/api/stock'+(force?'?force=1':'')+(force?'&':'?')+'_='+Date.now(),{cache:'no-store'}),d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'تعذر تحميل السيارات');stockItems=(d.items||[]).slice().sort(function(a,b){return String(a.title||'').localeCompare(String(b.title||''),'ar');});$('lastSync').textContent=nowText();updateMetrics();renderVehicleResults();setMsg('تم تحميل السيارات بنجاح.','ok');}catch(e){setMsg('تعذر تحميل السيارات: '+e.message,'error');}
+    }
+    function carById(id){return stockItems.find(function(c){return String(c.id||'')===String(id||'');})||null;}
+
+    async function selectScreen(code){
+      selectedScreen=String(code||'A1').toUpperCase();renderScreenTabs();
+      $('selectedScreenTitle').textContent=selectedScreen;var s=screens[selectedScreen]||{},active=!!(s.carId||s.carUrl);$('selectedScreenStatus').className='badge '+(active?'active':'empty');$('selectedScreenStatus').textContent=active?'مرتبطة':'فارغة';
+      draft={color:s.imageFilterColor||'all',colorLabel:s.imageFilterLabel||'',selectedImages:Array.isArray(s.selectedImages)?s.selectedImages.slice():[]};draftDirty=false;toggleDraftNotice(false);
+      selectedCar=s.carId?carById(s.carId):null;selectedCarData=null;inspectorTab='overview';renderSelectedVehicleCard();renderVehicleControls();renderInspector();refreshPreviewFrame();
+      if(selectedCar)await loadSelectedCarData(selectedCar,false);
     }
 
-    function updateStats(){
-      var active=0,empty=0;
-      CODES.forEach(function(c){ if((screens[c]&&screens[c].carUrl)||'') active++; else empty++; });
-      $('activeCount').innerText=active; $('emptyCount').innerText=empty; $('lastSync').innerText=nowText();
+    function renderVehicleResults(){
+      var el=$('vehicleResults'),q=norm($('vehicleSearch').value),items=stockItems.filter(function(c){return !q||norm([c.title,c.price,c.model,c.id].join(' ')).indexOf(q)>=0;}).slice(0,40);
+      if(!items.length){el.innerHTML='<div class="vehicle-result-empty">لا توجد نتائج.</div>';return;}
+      el.innerHTML=items.map(function(c){var selected=selectedCar&&String(selectedCar.id)===String(c.id);return '<button type="button" class="vehicle-result '+(selected?'selected':'')+'" onclick="chooseVehicle(\''+esc(c.id)+'\')">'+(c.image?'<img src="'+esc(c.image)+'" alt="">':'<span class="vehicle-result-placeholder">🚘</span>')+'<span><b>'+esc(c.title||('سيارة #'+c.id))+'</b><small>'+(c.price?esc(c.price)+' ر.س':'ID: '+esc(c.id))+'</small></span></button>';}).join('');
     }
 
-    function optionHtml(selected){
-      var h='<option value="">اختر سيارة من الاستوك...</option>';
-      stockItems.forEach(function(c){
-        var val=c.carUrl||'';
-        var sp=c.specs||{};
-        var label=[c.title||'سيارة',sp['موديل السيارة']||c.model||'',sp['فئة السيارة']||'',c.price||sp['السعر']||''].filter(Boolean).join(' | ');
-        h+='<option value="'+esc(val)+'" '+(val===selected?'selected':'')+'>'+esc(label)+'</option>';
-      });
-      return h;
+    async function chooseVehicle(id){
+      var car=carById(id);if(!car)return;
+      var changed=!selectedCar||String(selectedCar.id)!==String(car.id);selectedCar=car;if(changed){draft={color:'all',colorLabel:'',selectedImages:[]};draftDirty=true;toggleDraftNotice(true);}renderVehicleResults();renderSelectedVehicleCard();renderVehicleControls();await loadSelectedCarData(car,true);
     }
 
-    function carByUrl(url){ return stockItems.find(function(x){ return x.carUrl===url; })||null; }
+    async function readCar(car){
+      var r=await fetch('/api/read-car?id='+encodeURIComponent(car.id)+'&_='+Date.now(),{cache:'no-store'}),d=await r.json().catch(function(){return{};});if(!r.ok)throw new Error(d.error||'تعذر قراءة بيانات السيارة');if(String(d.id||'')!==String(car.id||''))throw new Error('بيانات السيارة لا تطابق السيارة المختارة');return d;
+    }
+    async function loadSelectedCarData(car,showLoading){
+      if(showLoading){$('selectedVehicleCard').innerHTML='<div class="vehicle-loading">جاري قراءة كل بيانات السيارة...</div>';}
+      try{selectedCarData=await readCar(car);await db.collection('showroom_car_cache').doc(hash('id:'+car.id)).set(selectedCarData,{merge:true}).catch(function(){});renderSelectedVehicleCard();renderVehicleControls();renderInspector();}
+      catch(e){selectedCarData=null;renderSelectedVehicleCard();renderVehicleControls();$('inspectorBody').innerHTML='<div class="center-muted error-text">تعذر قراءة السيارة: '+esc(e.message)+'</div>';}
+    }
+    async function reloadSelectedVehicle(){if(selectedCar)await loadSelectedCarData(selectedCar,true);}
 
-    function renderRows(){
-      var q=($('search').value||'').toLowerCase(),f=$('filter').value||'all',html='';
-      CODES.forEach(function(c){
-        var s=screens[c]||{},active=!!s.carUrl,car=carByUrl(s.carUrl),text=(c+' '+(s.carUrl||'')+' '+(car&&car.title||'')+' '+(s.carName||'')).toLowerCase();
-        if(q&&text.indexOf(q)<0) return;
-        if(f==='active'&&!active) return;
-        if(f==='empty'&&active) return;
-        var img=(car&&car.images&&car.images[0])||(s.sliderImages&&s.sliderImages[0])||'';
-        var color=s.imageFilterColor||'all';
-        html+='<tr class="screen-row">'+
-          '<td data-label="الكود"><b class="code">'+c+'</b></td>'+
-          '<td data-label="السيارة"><select class="stock-select" id="url_'+c+'" onchange="quickPreview(\''+c+'\');resetGallery(\''+c+'\')">'+optionHtml(s.carUrl||'')+'</select></td>'+
-          '<td data-label="الحالة"><span class="badge '+(active?'active':'empty')+'">● '+(active?'نشطة':'فارغة')+'</span></td>'+
-          '<td data-label="صورة"><div class="thumb-wrap">'+(img?'<img class="thumb visible" src="'+esc(img)+'">':'<span>▧</span>')+'</div></td>'+
-          '<td data-label="الإجراءات"><div class="actions">'+
-            '<button class="btn small view" onclick="preview(\''+c+'\')">معاينة</button>'+
-            '<button class="btn small" onclick="toggleImagePanel(\''+c+'\')">الصور/اللون</button>'+
-            '<button class="btn small primary" onclick="saveScreen(\''+c+'\')">حفظ</button>'+
-            '<button class="btn small" onclick="refreshScreen(\''+c+'\')">تحديث</button>'+
-          '</div></td></tr>';
-        html+='<tr class="image-row hidden" id="imgrow_'+c+'"><td colspan="5"><div class="image-control-box">'+
-          '<div class="image-control-head"><div><b>اختيار صور العرض واللون - '+c+'</b><div class="subtitle">اختار اللون أو حدد الصور التي تريدها لهذه الشاشة.</div></div><div class="image-actions">'+
-          '<button class="btn small" onclick="loadImagePicker(\''+c+'\')">تحميل الصور</button>'+
-          '<button class="btn small" onclick="selectImages(\''+c+'\',true);markManual(\''+c+'\')">تحديد الكل</button>'+
-          '<button class="btn small" onclick="selectImages(\''+c+'\',false);markManual(\''+c+'\')">مسح التحديد</button>'+
-          '<button class="btn small primary" onclick="saveScreen(\''+c+'\')">حفظ الصور</button></div></div>'+
-          '<label class="mobile-label">اللون المعروض</label><select class="filter color-select" id="color_'+c+'"><option value="'+esc(color)+'" selected>'+esc(color==='all'?'كل الألوان':(s.imageFilterLabel||color))+'</option></select>'+
-          '<div class="gallery-grid" id="gallery_'+c+'"><div class="center-muted">اضغط تحميل الصور بعد اختيار السيارة.</div></div></div></td></tr>';
-      });
-      $('rows').innerHTML=html||'<tr><td colspan="5" class="center-muted">لا توجد نتائج.</td></tr>';
+    function renderSelectedVehicleCard(){
+      var el=$('selectedVehicleCard');if(!selectedCar){el.className='selected-vehicle-card empty';el.innerHTML='<div>لم يتم اختيار سيارة لهذه الشاشة.</div>';return;}
+      var d=selectedCarData||selectedCar,img=(d.images&&d.images[0])||d.image||selectedCar.image||'';el.className='selected-vehicle-card';el.innerHTML=(img?'<img src="'+esc(img)+'" alt="">':'<div class="selected-no-image">🚘</div>')+'<div class="selected-vehicle-copy"><span>السيارة المختارة</span><h3>'+esc(d.title||selectedCar.title||'')+'</h3><p>'+(d.price?esc(d.price)+' ر.س':'')+'</p><small>Post ID: '+esc(d.id||selectedCar.id||'')+'</small></div>';
     }
 
-    function resetGallery(c){
-      var chosen=($('url_'+c)&&$('url_'+c).value)||'';
-      var st=screens[c]||{};
-      if(chosen!==String(st.carUrl||'')){
-        st.selectedImages=[];st.sliderImages=[];st.sliderMode='all';st.imageFilterColor='all';st.imageFilterLabel='';screens[c]=st;
-        var cs=$('color_'+c);if(cs){cs.innerHTML='<option value="all" selected>كل الألوان</option>';cs.value='all';}
-      }
-      var g=$('gallery_'+c);if(g)g.innerHTML='<div class="center-muted">اضغط تحميل الصور بعد اختيار السيارة.</div>';
+    function externalColors(){var ac=(selectedCarData&&selectedCarData.availableColors)||{};return Array.isArray(ac.external)?ac.external:[];}
+    function internalColors(){var ac=(selectedCarData&&selectedCarData.availableColors)||{};return Array.isArray(ac.internal)?ac.internal:[];}
+    function renderVehicleControls(){
+      var wrap=$('vehicleControls');wrap.classList.toggle('hidden',!selectedCarData);if(!selectedCarData)return;
+      var rows=externalColors(),sel=$('colorSelect');sel.innerHTML='<option value="all">كل صور السيارة</option>'+rows.map(function(r){return '<option value="'+esc(r.name)+'">'+esc(r.name)+(r.images&&r.images.length?' — '+r.images.length+' صورة':'')+'</option>';}).join('');sel.value=rows.some(function(r){return r.name===draft.color;})?draft.color:'all';
+      $('colorChips').innerHTML='<div class="color-chip-group"><small>الخارجي</small>'+rows.map(function(r){return '<span class="dash-color-chip"><i style="background:'+esc(r.background||'#dedede')+'"></i>'+esc(r.name)+'</span>';}).join('')+'</div>'+(internalColors().length?'<div class="color-chip-group"><small>الداخلي</small>'+internalColors().map(function(r){return '<span class="dash-color-chip"><i style="background:'+esc(r.background||'#dedede')+'"></i>'+esc(r.name)+'</span>';}).join('')+'</div>':'');
+      renderImagePicker();
     }
-    function toggleImagePanel(c){ var r=$('imgrow_'+c); if(!r)return; r.classList.toggle('hidden'); if(!r.classList.contains('hidden')) loadImagePicker(c); }
-    function selectedImages(c){
-      var nodes=Array.prototype.slice.call(document.querySelectorAll('input[name="img_'+c+'"]'));
-      if(!nodes.length) return Array.isArray(screens[c]&&screens[c].selectedImages)?screens[c].selectedImages.slice():[];
-      return nodes.filter(function(x){return x.checked;}).map(function(x){return x.value;});
+    function changeColorFilter(){var sel=$('colorSelect');draft.color=sel.value||'all';draft.colorLabel=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:'';draftDirty=true;toggleDraftNotice(true);renderImagePicker();}
+    function galleryImages(){var all=(selectedCarData&&selectedCarData.images)||[];if(draft.color&&draft.color!=='all'){var hit=externalColors().find(function(r){return r.name===draft.color;});if(hit&&hit.images&&hit.images.length)return hit.images;}return all;}
+    function renderImagePicker(){
+      var el=$('imagePicker'),imgs=galleryImages();if(!imgs.length){el.innerHTML='<div class="vehicle-result-empty">لا توجد صور في الاختيار الحالي.</div>';return;}
+      el.innerHTML=imgs.map(function(url,i){var checked=draft.selectedImages.indexOf(url)>=0;return '<label class="dashboard-image-card '+(checked?'selected':'')+'"><input type="checkbox" '+(checked?'checked':'')+' onchange="toggleImageSelection(this)" value="'+esc(url)+'"><img src="'+esc(url)+'" alt=""><span>صورة '+(i+1)+'</span></label>';}).join('');
     }
-    function selectImages(c,on){ Array.prototype.slice.call(document.querySelectorAll('input[name="img_'+c+'"]')).forEach(function(x){ x.checked=!!on; }); }
-    function markManual(c){ var g=$('gallery_'+c); if(g) g.setAttribute('data-slider-mode','manual'); var h=$('image_hint_'+c); if(h) h.textContent='تم اختيار الصور يدويًا. اضغط حفظ الصور أو حفظ الشاشة.'; }
+    function toggleImageSelection(input){var url=input.value;if(input.checked&&draft.selectedImages.indexOf(url)<0)draft.selectedImages.push(url);if(!input.checked)draft.selectedImages=draft.selectedImages.filter(function(x){return x!==url;});draftDirty=true;toggleDraftNotice(true);renderImagePicker();}
+    function clearImageSelection(){draft.selectedImages=[];draftDirty=true;toggleDraftNotice(true);renderImagePicker();}
 
-    function colorOptionsFromData(d){
-      var list=[];
-      function cleanName(x){ return String(x||'').replace(/\s+-\s+\d+\s+صورة.*/,'').trim(); }
-      function add(token,label,hex,count){
-        token=String(token||'').trim(); label=cleanName(label||token||'');
-        if(!token||!label||/%[0-9a-f]{2}/i.test(label)||/Close|صورة \d|محفوظ|undefined|null/i.test(label))return;
-        if(list.some(function(x){return x.token===token||x.label===label;}))return;
-        list.push({token:token,label:label+(count?' - '+count+' صورة':''),hex:hex||'',count:count||0});
-      }
-      add('all','كل الألوان','',0);
-      var slider=(d.availableSliderColors||[]).filter(function(c){return (c.images||[]).length>0;});
-      var src=slider.length?slider:(d.colors||[]);
-      src.forEach(function(c){ var imgs=(c.images||[]).length; var name=c.external||c.raw||c.label||c.token||c.hex||'لون'; add(c.token||c.hex||c.external||c.label,name,c.hex||'',imgs); });
-      return list;
+    async function saveSelectedScreen(){
+      if(!selectedCar||!selectedCarData){setMsg('اختار سيارة صحيحة أولًا.','error');return;}
+      var old=screens[selectedScreen]||{},payload={
+        screenCode:selectedScreen,title:'الشاشة '+selectedScreen,carId:selectedCarData.id,vehicleId:selectedCarData.vehicleId||'',carUrl:selectedCarData.carUrl,carName:selectedCarData.title,carPrice:selectedCarData.price||'',status:'active',
+        imageFilterColor:draft.color||'all',imageFilterLabel:draft.colorLabel||draft.color||'',selectedImages:draft.selectedImages.slice(),sliderImages:draft.selectedImages.slice(),sliderMode:draft.selectedImages.length?'manual':(draft.color&&draft.color!=='all'?'color':'all'),
+        forceRefresh:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      };
+      try{await db.collection('showroom_screens').doc(selectedScreen).set(payload,{merge:true});await db.collection('showroom_car_cache').doc(hash('id:'+selectedCarData.id)).set(selectedCarData,{merge:true}).catch(function(){});screens[selectedScreen]=Object.assign({},old,payload);draftDirty=false;toggleDraftNotice(false);renderScreenTabs();updateMetrics();$('selectedScreenStatus').className='badge active';$('selectedScreenStatus').textContent='مرتبطة';refreshPreviewFrame();setMsg('تم حفظ '+selectedScreen+' وربطها بهذه السيارة فقط بنجاح.','ok');}
+      catch(e){setMsg('فشل الحفظ: '+e.message,'error');}
     }
-
-    function populateColorSelect(c,d){
-      var sel=$('color_'+c); if(!sel)return;
-      var saved=(screens[c]&&screens[c].imageFilterColor)||sel.value||'all';
-      var opts=colorOptionsFromData(d||{});
-      if(!opts.some(function(x){return x.token===saved;})) opts.push({token:saved,label:saved==='all'?'كل الألوان':saved});
-      sel.innerHTML=opts.map(function(o){return '<option value="'+esc(o.token)+'" '+(o.token===saved?'selected':'')+'>'+esc(o.label)+'</option>';}).join('');
-      sel.onchange=function(){ previewColorImages(c,d,true); };
-      previewColorImages(c,d,false);
+    async function refreshSelectedScreen(){
+      var s=screens[selectedScreen]||{};if(!s.carId){setMsg('الشاشة '+selectedScreen+' غير مرتبطة بسيارة.','error');return;}
+      try{var car=carById(s.carId)||{id:s.carId},fresh=await readCar(car);await db.collection('showroom_car_cache').doc(hash('id:'+fresh.id)).set(fresh,{merge:true});await db.collection('showroom_screens').doc(selectedScreen).set({carName:fresh.title,carPrice:fresh.price||'',carUrl:fresh.carUrl,forceRefresh:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});screens[selectedScreen]=Object.assign({},s,{carName:fresh.title,carPrice:fresh.price||'',carUrl:fresh.carUrl});if(selectedCar&&String(selectedCar.id)===String(fresh.id)){selectedCarData=fresh;renderSelectedVehicleCard();renderVehicleControls();renderInspector();}refreshPreviewFrame();setMsg('تم تحديث الشاشة '+selectedScreen+'.','ok');}
+      catch(e){setMsg('تعذر تحديث الشاشة: '+e.message,'error');}
     }
 
-    function previewColorImages(c,d,clearManual){
-      var sel=$('color_'+c),g=$('gallery_'+c); if(!sel||!g||!d)return;
-      var color=sel.value;
-      if(clearManual){ selectImages(c,false); g.setAttribute('data-slider-mode','color'); }
-      if(!color||color==='all') return;
-      var cols=[].concat(d.availableSliderColors||[],d.colors||[]),hit=null;
-      cols.some(function(x){
-        var vals=[x.token,x.hex,x.raw,x.external,x.label].filter(Boolean).map(function(v){return String(v).toLowerCase();});
-        if(vals.indexOf(String(color).toLowerCase())>=0){hit=x;return true;} return false;
-      });
-      var imgs=(hit&&hit.images)||[],hint=$('image_hint_'+c);
-      if(imgs.length){
-        var set={}; imgs.forEach(function(u){set[String(u)]=true;try{set[decodeURIComponent(String(u))]=true;}catch(e){}});
-        var count=0;
-        Array.prototype.slice.call(document.querySelectorAll('input[name="img_'+c+'"]')).forEach(function(inp){
-          var v=String(inp.value),ok=!!set[v]; if(!ok){try{ok=!!set[decodeURIComponent(v)];}catch(e){}} inp.checked=ok;if(ok)count++;
-        });
-        if(hint)hint.textContent='تم تحديد '+count+' صورة مرتبطة باللون المختار.';
-      }else if(hint){ hint.textContent='لا توجد صور مرتبطة مباشرة بهذا اللون. يمكنك اختيار الصور يدويًا.'; }
+    function toggleDraftNotice(show){$('previewDraftNotice').classList.toggle('hidden',!show);}
+    function refreshPreviewFrame(){var frame=$('screenPreview');if(frame)frame.src='/screen?id='+encodeURIComponent(selectedScreen)+'&_='+Date.now();}
+    function openSelectedScreen(){window.open('/screen?id='+encodeURIComponent(selectedScreen),'_blank');}
+
+    function inspectorTabs(){return [['overview','نظرة عامة'],['technical','المواصفات الفنية'],['interior','المواصفات الداخلية'],['exterior','المواصفات الخارجية'],['safety','مواصفات الأمان'],['colors','الألوان'],['images','الصور']];}
+    function renderInspector(){
+      var tabs=$('inspectorTabs'),body=$('inspectorBody');if(!selectedCarData){tabs.innerHTML='';body.innerHTML='<div class="center-muted">لا توجد سيارة محددة.</div>';$('inspectorSub').textContent='اختار سيارة لعرض بياناتها كاملة.';return;}
+      $('inspectorSub').textContent=selectedCarData.title||'';tabs.innerHTML=inspectorTabs().map(function(t){return '<button type="button" class="inspector-tab '+(inspectorTab===t[0]?'active':'')+'" onclick="setInspectorTab(\''+t[0]+'\')">'+t[1]+'</button>';}).join('');body.innerHTML=inspectorContent(inspectorTab);
     }
-
-    function allGalleryImages(d){
-      var list=[];
-      function add(u){ if(u&&list.indexOf(u)<0&&!/default-car|placeholder|no-image|noimage|logo|favicon|icon|cropped|avatar|loader|spinner|blank/i.test(u))list.push(u); }
-      (d.images||[]).forEach(add);
-      [].concat(d.availableSliderColors||[],d.colors||[]).forEach(function(col){(col.images||[]).forEach(add);});
-      return list;
+    function setInspectorTab(tab){inspectorTab=tab;renderInspector();}
+    function specCards(items){return '<div class="inspector-spec-grid">'+(items||[]).map(function(x){return '<div><small>'+esc(x.label||x[0])+'</small><b>'+esc(x.value||x[1])+'</b></div>';}).join('')+'</div>';}
+    function featureList(items){return '<div class="inspector-feature-grid">'+(items||[]).map(function(x){return '<span><i>✓</i>'+esc(x)+'</span>';}).join('')+'</div>';}
+    function inspectorContent(tab){
+      var d=selectedCarData,fg=d.featureGroups||{};
+      if(tab==='overview')return '<div class="inspector-summary"><div class="inspector-summary-head"><b>'+esc(d.title||'')+'</b><strong>'+esc(d.price||'')+(d.price?' ر.س':'')+'</strong></div>'+specCards(d.quickSpecs||[])+'</div>';
+      if(tab==='technical')return (d.specGroups||[]).map(function(g){return '<section class="inspector-group"><h4>'+esc(g.title)+'</h4>'+specCards(g.items||[])+'</section>';}).join('')||'<div class="center-muted">لا توجد بيانات.</div>';
+      if(tab==='interior')return featureList(fg.interior||[]);
+      if(tab==='exterior')return featureList(fg.exterior||[]);
+      if(tab==='safety')return featureList(fg.safety||[]);
+      if(tab==='colors')return '<div class="inspector-color-groups">'+(externalColors().length?'<section><h4>الألوان الخارجية</h4><div class="inspector-colors">'+externalColors().map(function(r){return '<span><i style="background:'+esc(r.background||'#dedede')+'"></i><b>'+esc(r.name)+'</b><small>'+(r.images&&r.images.length?r.images.length+' صورة':'')+'</small></span>';}).join('')+'</div></section>':'')+(internalColors().length?'<section><h4>الألوان الداخلية</h4><div class="inspector-colors">'+internalColors().map(function(r){return '<span><i style="background:'+esc(r.background||'#dedede')+'"></i><b>'+esc(r.name)+'</b></span>';}).join('')+'</div></section>':'')+'</div>';
+      if(tab==='images')return '<div class="inspector-images">'+(d.images||[]).map(function(u,i){return '<figure><img src="'+esc(u)+'" alt=""><figcaption>صورة '+(i+1)+'</figcaption></figure>';}).join('')+'</div>';
+      return '';
     }
-
-    async function loadImagePicker(c){
-      var g=$('gallery_'+c); if(!g)return;
-      var url=($('url_'+c)&&$('url_'+c).value||'').trim();
-      if(!url){g.innerHTML='<div class="center-muted">اختار سيارة الأول.</div>';return;}
-      g.innerHTML='<div class="center-muted">جاري تحميل الصور...</div>';
-      try{
-        var car=carByUrl(url);
-        if(!car||!car.id)throw new Error('تعذر تحديد ID السيارة المختارة');
-        var d=await readCar(car);
-        await db.collection('showroom_car_cache').doc(carCacheKey(car)).set(d,{merge:true});
-        var imgs=allGalleryImages(d),saved=(screens[c]&&screens[c].selectedImages)||[];
-        if(!imgs.length){populateColorSelect(c,d);g.innerHTML='<div class="center-muted">لا توجد صور متاحة.</div>';return;}
-        g.innerHTML='<div class="image-hint" id="image_hint_'+c+'">حدد الصور التي تريد ظهورها في الجزء المربع 1:1.</div>'+imgs.map(function(u,i){
-          var checked=saved.indexOf(u)>=0?'checked':'';
-          return '<label class="gallery-card"><input type="checkbox" onchange="markManual(\''+c+'\')" name="img_'+c+'" value="'+esc(u)+'" '+checked+'><img src="'+esc(u)+'" loading="lazy"><span>صورة '+(i+1)+'</span></label>';
-        }).join('');
-        populateColorSelect(c,d); previewColorImages(c,d,false);
-      }catch(e){g.innerHTML='<div class="center-muted error-text">تعذر تحميل الصور: '+esc(e.message)+'</div>';}
-    }
-
-    function carCacheKey(car){ return hash('id:' + String((car&&car.id)||'')); }
-
-    async function readCar(ref){
-      var car=(ref&&typeof ref==='object')?ref:(carByUrl(String(ref||''))||stockItems.find(function(x){return String(x.id||'')===String(ref||'');})||null);
-      var identifier=car&&car.id?String(car.id):String(ref||'').trim();
-      if(!identifier)throw new Error('السيارة المختارة بدون ID ثابت');
-      var r=await fetch('/api/read-car?id='+encodeURIComponent(identifier)+'&_='+Date.now(),{cache:'no-store'});
-      var d=await r.json().catch(function(){return{};});
-      if(!r.ok)throw new Error(d.error||'تعذر قراءة بيانات السيارة');
-      if(car&&String(d.id||'')!==String(car.id||''))throw new Error('بيانات السيارة لا تطابق السيارة المختارة');
-      if(car&&car.carUrl&&d.carUrl&&String(d.carUrl).replace(/\/+$/,'')!==String(car.carUrl).replace(/\/+$/,''))throw new Error('رابط السيارة لا يطابق السيارة المختارة');
-      return d;
-    }
-
-    async function quickPreview(c){
-      selectedScreen=c;
-      var url=$('url_'+c).value;
-      if(!url){$('previewBox').innerHTML='<div class="section center-muted">لم يتم اختيار سيارة.</div>';return;}
-      var car=carByUrl(url);
-      if(!car||!car.id){$('previewBox').innerHTML='<div class="section center-muted error-text">السيارة المختارة بدون ID ثابت.</div>';return;}
-      $('previewBox').innerHTML='<div class="section center-muted">جاري تحميل بيانات نفس السيارة...</div>';
-      try{var d=await readCar(car);renderPreview(d,c);}catch(e){$('previewBox').innerHTML='<div class="section center-muted error-text">'+esc(e.message)+'</div>';}
-    }
-
-    async function saveScreen(c){
-      var carUrl=($('url_'+c).value||'').trim(),car=carByUrl(carUrl);
-      if(carUrl&&(!car||!car.id)){setMsg('فشل الحفظ: السيارة المختارة لا تحتوي على ID ثابت.','error');return;}
-      var color=(($('color_'+c)&&$('color_'+c).value)||((screens[c]&&screens[c].imageFilterColor)||'all'));
-      var sel=selectedImages(c);
-      var colorSelect=$('color_'+c);
-      var colorLabel=colorSelect&&colorSelect.options[colorSelect.selectedIndex]?colorSelect.options[colorSelect.selectedIndex].text:(screens[c]&&screens[c].imageFilterLabel)||color;
-      var old=screens[c]||{};
-      var sliderMode=sel.length?'manual':(color&&color!=='all'?'color':'all');
-      try{
-        var fresh=null;
-        if(car){
-          fresh=await readCar(car);
-          await db.collection('showroom_car_cache').doc(carCacheKey(car)).set(fresh,{merge:true});
-          await db.collection('showroom_car_cache').doc(hash(car.carUrl)).set(fresh,{merge:true}).catch(function(){});
-        }
-        var canonicalUrl=fresh&&fresh.carUrl?fresh.carUrl:carUrl;
-        var canonicalId=fresh&&fresh.id?fresh.id:(car?car.id:'');
-        var canonicalName=fresh&&fresh.title?fresh.title:(car?car.title:'');
-        var payload={
-          screenCode:c,title:'الشاشة '+c,carUrl:canonicalUrl,carId:canonicalId,carName:canonicalName,carPrice:(fresh&&fresh.price)||(car&&car.price)||'',status:canonicalUrl?'active':'empty',
-          imageFilterColor:color,imageFilterLabel:colorLabel,selectedImages:sel,sliderImages:sel,sliderMode:sliderMode,
-          updatedAt:firebase.firestore.FieldValue.serverTimestamp(),forceRefresh:Date.now()
-        };
-        await db.collection('showroom_screens').doc(c).set(payload,{merge:true});
-        screens[c]=Object.assign({},old,payload,{updatedAt:old.updatedAt});
-        renderRows();updateStats();
-        if(fresh)renderPreview(fresh,c);
-        setMsg('تم حفظ الشاشة '+c+' وربطها بنفس السيارة بالـ ID بنجاح.','ok');
-      }catch(e){setMsg('فشل الحفظ: '+e.message,'error');}
-    }
-
-    async function refreshScreen(c){
-      var carUrl=($('url_'+c).value||'').trim(),car=carByUrl(carUrl);
-      if(!carUrl||!car||!car.id){setMsg('لا توجد سيارة صحيحة في '+c+'.','error');return;}
-      try{
-        var fresh=await readCar(car);
-        await db.collection('showroom_car_cache').doc(carCacheKey(car)).set(fresh,{merge:true});
-        await db.collection('showroom_car_cache').doc(hash(car.carUrl)).set(fresh,{merge:true}).catch(function(){});
-        await db.collection('showroom_screens').doc(c).set({carId:fresh.id,carUrl:fresh.carUrl,carName:fresh.title,carPrice:fresh.price||'',forceRefresh:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-        screens[c]=Object.assign({},screens[c]||{},{carId:fresh.id,carUrl:fresh.carUrl,carName:fresh.title,carPrice:fresh.price||''});
-        setMsg('تم تحديث نفس السيارة للشاشة '+c+'.','ok');renderPreview(fresh,c);
-      }catch(e){setMsg('فشل تحديث الشاشة: '+e.message,'error');}
-    }
-
-    async function refreshAll(){
-      for(var i=0;i<CODES.length;i++){var c=CODES[i],el=$('url_'+c);if(el&&el.value.trim())await saveScreen(c);}
-      setMsg('تم تحديث كل الشاشات المرتبطة.','ok');
-    }
-
-    async function preview(c){
-      selectedScreen=c;
-      var url=($('url_'+c)&&$('url_'+c).value.trim())||(screens[c]&&screens[c].carUrl);
-      var car=carByUrl(url);
-      if(!url||!car||!car.id){$('previewBox').innerHTML='<div class="section center-muted">الشاشة '+c+' بدون سيارة صحيحة.</div>';return;}
-      try{
-        var d=await readCar(car);
-        await db.collection('showroom_car_cache').doc(carCacheKey(car)).set(d,{merge:true}).catch(function(){});
-        renderPreview(d,c);
-      }catch(e){
-        try{var doc=await db.collection('showroom_car_cache').doc(carCacheKey(car)).get();if(doc.exists){renderPreview(doc.data(),c);return;}}catch(ignore){}
-        $('previewBox').innerHTML='<div class="section center-muted error-text">تعذر عرض المعاينة: '+esc(e.message)+'</div>';
-      }
-    }
-
-
-    function previewSpecs(d){
-      if(Array.isArray(d&&d.quickSpecs)&&d.quickSpecs.length)return d.quickSpecs.map(function(x){return [x.label,x.value];});
-      var sp=(d&&d.specs)||{},keys=['فئة السيارة','سعة المحرك','هيكل السيارة','موديل السيارة','نظام الدفع','نوع الناقل','عدد المقاعد','الوقود','الضمان'];
-      return keys.filter(function(k){return sp[k];}).map(function(k){return [k,sp[k]];});
-    }
-
-    function renderPreview(d,c){
-      previewDataCache=d;
-      var sp=d.specs||{},screen=screens[c]||{},imgs=(screen.sliderImages&&screen.sliderImages.length)?screen.sliderImages:(d.images||[]),specs=previewSpecs(d);
-      var logo=displaySettings.logoDataUrl?'<img class="mini-screen-logo '+(displaySettings.logoPosition==='left'?'left':'right')+'" style="max-width:'+displaySettings.logoWidth+'px" src="'+esc(displaySettings.logoDataUrl)+'" alt="logo">':'';
-      var price=d.price||sp['السعر']||'';
-      $('previewBox').innerHTML='<div class="mini-showroom">'+
-        '<div class="mini-visual">'+(imgs[0]?'<img src="'+esc(imgs[0])+'" alt="car">':'<div class="mini-no-img">لا توجد صورة</div>')+'</div>'+
-        '<div class="mini-details">'+logo+'<small>'+esc([sp['ماركة السيارة'],sp['موديل السيارة']].filter(Boolean).join(' • '))+'</small><h2>'+esc(d.title||screen.carName||'')+'</h2>'+
-        (price?'<div class="mini-price">'+esc(price)+' <span>ر.س</span></div>':'')+
-        '<div class="mini-specs" style="--preview-font:'+displaySettings.featureFontSize+'px">'+specs.map(function(x){return '<div><small>'+esc(x[0])+'</small><b>'+esc(x[1])+'</b></div>';}).join('')+'</div></div></div>';
-    }
-
-    function openSelectedScreen(){if(!selectedScreen)selectedScreen='A1';window.open('/screen?id='+encodeURIComponent(selectedScreen),'_blank');}
-    function openSelectedPdf(){if(!selectedScreen)selectedScreen='A1';window.open('/pdf?id='+encodeURIComponent(selectedScreen),'_blank');}
   </script>
 </body>
 </html>

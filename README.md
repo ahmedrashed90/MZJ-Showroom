@@ -1,11 +1,45 @@
-# MZJ Showroom v40 — Full Feature Lists Clean
+# MZJ Showroom v41 — Premium Independent Screens Clean
 
-Built from the approved v39 exact-vehicle binding.
+Full clean rebuild of the showroom display/dashboard layer using the approved v41 presentation and the current MZJ vehicle + stock contracts as references.
 
-## v40 change
-- Interior, exterior, and safety lists are no longer split into 8-item pages.
-- Opening any of the three feature tabs renders the complete list returned for that exact vehicle.
-- Long lists automatically reflow to 2, 3, or 4 columns so all items remain visible without truncating the data.
-- Dashboard specification font size remains the preferred size. Very long lists only receive a safe visual fit cap to prevent text from being cut off-screen; no data item is removed.
-- Automatic rotation now changes between complete feature sections every 12 seconds.
-- Existing v39 rules remain unchanged: exact vehicle/post ID, exact title/QR/gallery, main specs, technical groups, deduplication, dashboard logo controls, and force refresh.
+## Vehicle identity
+- Every screen document is independent: `showroom_screens/A1`, `showroom_screens/A2`, etc.
+- The selected WordPress Post ID (`carId`) is the primary vehicle identity.
+- The screen re-reads the exact vehicle by Post ID and verifies that the returned ID/URL did not change.
+- Correct screen URLs are `/screen?id=A1`, `/screen?id=A2`, etc.
+- Legacy malformed URLs such as `/screen?id/=A2` are accepted and normalized to `A2`.
+
+## Vehicle page data
+- Title, price, 1:1 gallery images, main specs, technical groups and the three feature groups are parsed from the exact MZJ single-vehicle page.
+- Internal / external / safety feature lists are complete; there is no 8-item pagination or hidden slice.
+- Long feature lists remain fully rendered inside a dedicated scrollable feature area.
+- Main/technical duplicated scalar fields are removed from the technical view when the same value is already present in the main specs.
+
+## Colors
+- Available colors follow the current canonical NEXT/checkout color matrix exposed by the vehicle page.
+- External colors include their displayed swatch/background and their exact color-gallery images.
+- Internal colors include their displayed swatch/background.
+- Dashboard color filtering uses those exact external color rows and images.
+
+## Display design
+- Square 1:1 image area with `object-fit: contain`.
+- Manual previous/next image arrows at bottom-left plus automatic image rotation.
+- Compact price block.
+- Visible available-color chips with name + swatch.
+- Fixed “المواصفات الفنية” heading; technical content changes only when a technical tab is clicked.
+- Interior / exterior / safety tabs use bold labels and change only when clicked.
+- Dashboard-controlled logo, logo size/position and specification font size remain live across display pages.
+- QR is generated from the exact selected vehicle permalink.
+
+## Dashboard redesign
+- Screen selector cards for A1–A10 with independent status/car labels.
+- Searchable vehicle chooser.
+- Exact selected-vehicle card, color control and image picker.
+- Live iframe of the actual selected screen.
+- Full vehicle inspector tabs: overview, technical, interior, exterior, safety, colors and images.
+- Save affects only the currently selected screen document.
+
+## Validation performed
+- Node syntax checks for API, dashboard, screen and export scripts.
+- Canonical parser fixture test with 25 interior, 12 exterior and 14 safety items (all retained).
+- Canonical color-matrix fixture test with external/internal swatches and color-specific images.

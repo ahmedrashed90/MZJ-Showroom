@@ -1,6 +1,6 @@
 {
-  "name": "mzj-showroom-full-feature-lists-clean",
-  "version": "40.0.0",
+  "name": "mzj-showroom-premium-independent-screens-clean",
+  "version": "41.0.0",
   "private": true,
   "main": "server.js",
   "scripts": {
