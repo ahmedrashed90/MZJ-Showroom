@@ -3,11 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <script>
+    // MZJ v45: purge browser-managed site caches on every page open without touching auth/localStorage.
+    window.MZJ_PAGE_CACHE_BUSTER = String(Date.now());
+    (function(){
+      try{
+        if(window.caches && caches.keys){
+          caches.keys().then(function(keys){ return Promise.all(keys.map(function(k){ return caches.delete(k); })); }).catch(function(){});
+        }
+        if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
+          navigator.serviceWorker.getRegistrations().then(function(regs){ regs.forEach(function(r){ try{r.unregister();}catch(e){} }); }).catch(function(){});
+        }
+      }catch(e){}
+    })();
+  </script>
   <title>MZJ Showroom Screen</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <script>
+    document.write('<link rel="stylesheet" href="/styles.css?mzjv45='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="showroom-display-body">
@@ -15,10 +34,13 @@
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="firebase-config.js"></script>
+  <script>
+    document.write('<script src="/firebase-config.js?mzjv45='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+  </script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
     var db = firebase.firestore();
+    var PAGE_CACHE_BUSTER=window.MZJ_PAGE_CACHE_BUSTER||String(Date.now());
 
     function esc(s){ return String(s||'').replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];}); }
     function cleanText(s){ return String(s||'').replace(/\s+/g,' ').trim(); }
@@ -119,7 +141,7 @@
       return vehicleImagePool().filter(function(u){return !badLoaded[u];});
     }
     function currentImage(){var arr=images();if(!arr.length)return'';if(imageIndex<0)imageIndex=arr.length-1;if(imageIndex>=arr.length)imageIndex=0;return arr[imageIndex];}
-    function compatibleImageUrl(url){return url?'/api/image-proxy?url='+encodeURIComponent(url):'';}
+    function compatibleImageUrl(url){return url?'/api/image-proxy?url='+encodeURIComponent(url)+'&cb='+encodeURIComponent(PAGE_CACHE_BUSTER):'';}
 
     function semanticSpecKey(label){
       var n=normArabic(label),map={
@@ -232,7 +254,7 @@
       // Proxy-first. If conversion/proxy failed, make one direct attempt for modern browsers.
       if(original&&img.dataset.directTried!=='1'){
         img.dataset.directTried='1';
-        img.src=original;
+        try{var directUrl=new URL(original,location.href);directUrl.searchParams.set('_mzjcb',PAGE_CACHE_BUSTER);img.src=directUrl.toString();}catch(e){img.src=original+(original.indexOf('?')>=0?'&':'?')+'_mzjcb='+encodeURIComponent(PAGE_CACHE_BUSTER);}
         return;
       }
       if(original)badLoaded[original]=1;

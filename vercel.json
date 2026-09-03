@@ -1,17 +1,78 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/", "destination": "/dashboard" },
-    { "source": "/dashboard", "destination": "/dashboard.html" },
-    { "source": "/screen", "destination": "/screen.html" },
-    { "source": "/pdf", "destination": "/export.html" },
-    { "source": "/export", "destination": "/export.html" }
+    {
+      "source": "/",
+      "destination": "/dashboard"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/dashboard.html"
+    },
+    {
+      "source": "/screen",
+      "destination": "/screen.html"
+    },
+    {
+      "source": "/pdf",
+      "destination": "/export.html"
+    },
+    {
+      "source": "/export",
+      "destination": "/export.html"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, proxy-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "source": "/screen",
+      "headers": [
+        {
+          "key": "Clear-Site-Data",
+          "value": "\"cache\""
+        }
+      ]
+    },
+    {
+      "source": "/screen.html",
+      "headers": [
+        {
+          "key": "Clear-Site-Data",
+          "value": "\"cache\""
+        }
+      ]
+    },
+    {
+      "source": "/api/image-proxy",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, max-age=0"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        }
       ]
     }
   ]

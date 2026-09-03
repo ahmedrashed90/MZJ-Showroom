@@ -1,6 +1,6 @@
 {
-  "name": "mzj-showroom-kiosk-image-compatibility-clean",
-  "version": "44.0.0",
+  "name": "mzj-showroom-cache-reset-on-open-clean",
+  "version": "45.0.0",
   "private": true,
   "main": "server.js",
   "scripts": {

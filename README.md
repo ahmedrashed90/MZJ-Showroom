@@ -1,15 +1,18 @@
-# MZJ Showroom v44 — Kiosk Image Compatibility Clean
+# MZJ Showroom v45 — Cache Reset On Open — Clean
 
-This build is based on v43 and focuses on kiosk/physical-screen image compatibility.
+مبنية على v44 بدون تغيير منطق السيارات أو الشاشات أو المواصفات.
 
-## v44 changes
-- Display images are loaded through the same-origin image proxy first.
-- The proxy converts supported source formats (including WebP/AVIF) to standard JPEG using `sharp`.
-- HTTP/mixed-content source image URLs are fetched server-side and returned over the showroom HTTPS origin.
-- Direct original URL is retained only as a fallback if proxy conversion fails.
-- Arrow sizes are responsive with `clamp()` instead of a fixed 62px size, reducing apparent zoom on lower-resolution / scaled kiosk browsers.
-- Optional diagnostics: open `/screen?id=A1&debug=1` to show Screen ID, image count, viewport, DPR, viewport scale, and current source URL.
-- No changes to vehicle ID, specifications, colors, QR, or per-screen independence logic.
+## التعديل في v45
+- كل فتح لصفحة العرض ينشئ Cache-Buster جديد.
+- حذف Cache Storage الموجود للـ origin عند الفتح، إن كان المتصفح يدعمه.
+- إلغاء أي Service Worker قديم عند الفتح.
+- `styles.css` و `firebase-config.js` يتم تحميلهما بعنوان جديد في كل فتح.
+- صور السيارة عبر `image-proxy` تحمل Cache-Buster خاص بجلسة الصفحة.
+- الـ direct image fallback يحمل Cache-Buster أيضًا.
+- `/api/image-proxy` أصبح `no-store` بدل التخزين لمدة يوم.
+- Vercel يرسل `Cache-Control: no-store` + `Pragma: no-cache` + `Expires: 0`.
+- `/screen` و `/screen.html` يرسلان `Clear-Site-Data: "cache"` للمتصفحات التي تدعمها.
+- لا يتم مسح localStorage أو Firebase Auth، لذلك لا يتم تسجيل خروج الداش بورد.
 
-## Deployment
-`sharp` was added to dependencies and will be installed by the deployment platform.
+## الهدف
+تقليل/إلغاء اعتماد شاشات الـ Kiosk على نسخة قديمة من HTML/CSS أو صور السيارة، بدون زيارة الشاشة لمسح الكاش يدويًا.

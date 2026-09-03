@@ -9,7 +9,7 @@ function fetchBuffer(url, timeout=25000, redirects=0){
     const lib = u.protocol === 'https:' ? https : http;
     const req = lib.get(u, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 MZJ-Showroom/44.0',
+        'User-Agent': 'Mozilla/5.0 MZJ-Showroom/45.0',
         'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
         'Cache-Control': 'no-cache',
         'Referer': u.origin + '/'
@@ -71,7 +71,9 @@ module.exports = async function handler(req, res){
     }
 
     res.setHeader('Content-Type', type);
-    res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('X-MZJ-Image-Proxy', type === 'image/jpeg' ? 'jpeg-compatible' : 'passthrough');
     res.status(200).send(body);

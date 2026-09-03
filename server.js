@@ -37,10 +37,14 @@ function sendFile(res, filePath){
       return;
     }
     const ext = path.extname(filePath).toLowerCase();
-    res.writeHead(200, {
+    const headers = {
       'Content-Type': types[ext] || 'application/octet-stream',
-      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
-    });
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    };
+    if(ext === '.html') headers['Clear-Site-Data'] = '"cache"';
+    res.writeHead(200, headers);
     res.end(data);
   });
 }
@@ -83,7 +87,9 @@ async function handler(req, res){
         }
         res.writeHead(proxyRes.statusCode || 200, {
           'Content-Type': proxyRes.headers['content-type'] || 'image/jpeg',
-          'Cache-Control': 'public, max-age=86400',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0',
           'Access-Control-Allow-Origin': '*'
         });
         proxyRes.pipe(res);

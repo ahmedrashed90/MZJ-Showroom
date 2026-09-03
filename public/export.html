@@ -3,6 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <script>
+    // MZJ v45: purge browser-managed site caches on every page open without touching auth/localStorage.
+    window.MZJ_PAGE_CACHE_BUSTER = String(Date.now());
+    (function(){
+      try{
+        if(window.caches && caches.keys){
+          caches.keys().then(function(keys){ return Promise.all(keys.map(function(k){ return caches.delete(k); })); }).catch(function(){});
+        }
+        if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
+          navigator.serviceWorker.getRegistrations().then(function(regs){ regs.forEach(function(r){ try{r.unregister();}catch(e){} }); }).catch(function(){});
+        }
+      }catch(e){}
+    })();
+  </script>
   <title>تصدير PDF | MZJ Showroom</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +42,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="firebase-config.js"></script>
+  <script>
+    document.write('<script src="/firebase-config.js?mzjv45='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+  </script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
     var db = firebase.firestore();
