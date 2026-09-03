@@ -1,11 +1,13 @@
 {
-  "name": "mzj-showroom-centered-image-arrows-clean",
-  "version": "42.0.0",
+  "name": "mzj-showroom-kiosk-image-compatibility-clean",
+  "version": "44.0.0",
   "private": true,
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "sharp": "^0.34.3"
+  }
 }

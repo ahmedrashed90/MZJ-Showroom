@@ -119,6 +119,7 @@
       return vehicleImagePool().filter(function(u){return !badLoaded[u];});
     }
     function currentImage(){var arr=images();if(!arr.length)return'';if(imageIndex<0)imageIndex=arr.length-1;if(imageIndex>=arr.length)imageIndex=0;return arr[imageIndex];}
+    function compatibleImageUrl(url){return url?'/api/image-proxy?url='+encodeURIComponent(url):'';}
 
     function semanticSpecKey(label){
       var n=normArabic(label),map={
@@ -184,7 +185,7 @@
       var title=cleanText(data.title||screenOptions.carName||''),price=cleanText(data.price||screenOptions.carPrice||''),specs=mainSpecs();
       var root=document.getElementById('root');
       root.className='showroom-screen premium';
-      root.innerHTML='<section class="showroom-visual"><div class="showroom-stage"><img id="showroomCarImage" alt="'+esc(title||'صورة السيارة')+'"></div><div class="showroom-image-controls"><button id="imgPrev" type="button" aria-label="الصورة السابقة">‹</button><button id="imgNext" type="button" aria-label="الصورة التالية">›</button></div><div id="showroomDots" class="showroom-dots"></div></section>'+
+      root.innerHTML='<section class="showroom-visual"><div class="showroom-stage"><img id="showroomCarImage" loading="eager" decoding="async" fetchpriority="high" alt="'+esc(title||'صورة السيارة')+'"></div><div class="showroom-image-controls"><button id="imgPrev" type="button" aria-label="الصورة السابقة">‹</button><button id="imgNext" type="button" aria-label="الصورة التالية">›</button></div><div id="showroomDots" class="showroom-dots"></div></section>'+
         '<aside class="showroom-details">'+logoHtml()+'<div class="showroom-title-row"><h1>'+esc(title)+'</h1>'+(price?'<div class="showroom-price-card"><small>السعر شامل ضريبة القيمة المضافة</small><div class="showroom-price">'+esc(price)+' <span>ر.س</span></div></div>':'')+'</div>'+colorsHtml()+
         (specs.length?'<section class="showroom-main-specs"><div class="showroom-section-head"><strong>المواصفات الرئيسية</strong></div><div class="showroom-spec-grid">'+specs.map(function(x){return '<div class="showroom-spec"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>';}).join('')+'</div></section>':'')+
         '<div id="techSlot">'+techHtml()+'</div><div id="featureSlot" class="showroom-feature-slot">'+featuresHtml()+'</div>'+qrHtml()+'</aside>';
@@ -207,8 +208,9 @@
       if(img){
         if(src){
           img.dataset.originalSrc=src;
-          img.dataset.proxyTried='0';
-          if(img.getAttribute('src')!==src)img.src=src;
+          img.dataset.directTried='0';
+          var compatible=compatibleImageUrl(src);
+          if(img.getAttribute('src')!==compatible)img.src=compatible;
           img.classList.remove('hidden');
         }else{
           img.removeAttribute('src');
@@ -217,6 +219,7 @@
         }
       }
       renderDots();
+      renderDebug();
     }
     function moveImage(step){
       var arr=images();
@@ -226,15 +229,23 @@
     }
     function handleImageError(img){
       var original=img&&img.dataset?String(img.dataset.originalSrc||''):'';
-      if(original&&img.dataset.proxyTried!=='1'){
-        img.dataset.proxyTried='1';
-        img.src='/api/image-proxy?url='+encodeURIComponent(original)+'&_='+Date.now();
+      // Proxy-first. If conversion/proxy failed, make one direct attempt for modern browsers.
+      if(original&&img.dataset.directTried!=='1'){
+        img.dataset.directTried='1';
+        img.src=original;
         return;
       }
       if(original)badLoaded[original]=1;
       var arr=images();
       imageIndex=arr.length?Math.min(imageIndex,arr.length-1):0;
       updateImageOnly();
+    }
+    function renderDebug(){
+      if(!/[?&]debug=1(?:&|$)/.test(location.search))return;
+      var el=document.getElementById('mzjDebug');
+      if(!el){el=document.createElement('div');el.id='mzjDebug';el.className='showroom-debug';document.body.appendChild(el);}
+      var arr=images(),vv=window.visualViewport;
+      el.textContent='Screen '+screenId+' | images '+arr.length+' | index '+imageIndex+' | viewport '+innerWidth+'x'+innerHeight+' | DPR '+(window.devicePixelRatio||1)+' | scale '+(vv&&vv.scale?vv.scale:1)+' | '+(currentImage()||'NO IMAGE');
     }
     function startImageLoop(){var arr=images();if(arr.length>1)imageTimer=setInterval(function(){moveImage(1);},6500);}
     function restartImageLoop(){stopImageLoop();startImageLoop();}
