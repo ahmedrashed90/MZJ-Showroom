@@ -218,7 +218,7 @@
       if(!selectedCar||!selectedCarData){setMsg('اختار سيارة صحيحة أولًا.','error');return;}
       var old=screens[selectedScreen]||{},payload={
         screenCode:selectedScreen,title:'الشاشة '+selectedScreen,carId:selectedCarData.id,vehicleId:selectedCarData.vehicleId||'',carUrl:selectedCarData.carUrl,carName:selectedCarData.title,carPrice:selectedCarData.price||'',status:'active',
-        imageFilterColor:draft.color||'all',imageFilterLabel:draft.colorLabel||draft.color||'',selectedImages:draft.selectedImages.slice(),sliderImages:draft.selectedImages.slice(),sliderMode:draft.selectedImages.length?'manual':(draft.color&&draft.color!=='all'?'color':'all'),
+        imageFilterColor:draft.color||'all',imageFilterLabel:draft.colorLabel||draft.color||'',selectedImages:draft.selectedImages.slice(),sliderImages:draft.selectedImages.slice(),imageSelectionCarId:String(selectedCarData.id||''),sliderMode:draft.selectedImages.length?'manual':(draft.color&&draft.color!=='all'?'color':'all'),
         forceRefresh:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()
       };
       try{await db.collection('showroom_screens').doc(selectedScreen).set(payload,{merge:true});await db.collection('showroom_car_cache').doc(hash('id:'+selectedCarData.id)).set(selectedCarData,{merge:true}).catch(function(){});screens[selectedScreen]=Object.assign({},old,payload);draftDirty=false;toggleDraftNotice(false);renderScreenTabs();updateMetrics();$('selectedScreenStatus').className='badge active';$('selectedScreenStatus').textContent='مرتبطة';refreshPreviewFrame();setMsg('تم حفظ '+selectedScreen+' وربطها بهذه السيارة فقط بنجاح.','ok');}

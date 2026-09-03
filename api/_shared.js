@@ -3,7 +3,7 @@ const https = require('https');
 const { URL } = require('url');
 
 const STOCK_URL = process.env.MZJ_CARS_ENDPOINT || 'https://mzjcars.com/wp-json/mzj-platform/v2/cars';
-const PARSER_VERSION = 'v41-premium-independent-screens';
+const PARSER_VERSION = 'v43-robust-image-loading';
 const STOCK_TTL = 2 * 60 * 1000;
 const CAR_TTL = 5 * 60 * 1000;
 const cache = { stock: null, stockAt: 0, cars: new Map() };
@@ -367,19 +367,32 @@ function parseFeatureGroups(html){
   }
   return result;
 }
+function firstImageAttr(tag, names){
+  for (const name of names){
+    const value = attrValue(tag, name);
+    if (value) return value;
+  }
+  return '';
+}
 function parseGallery(html, baseUrl){
   const fragment = sliceBetween(html, 'class="mzjpan-gallery"', ['class="mzjpan-available-colors"','class="mzjpan-summary"']);
   const images = [];
   const main = /<img\b[^>]*data-gallery-main[^>]*>/i.exec(fragment);
   if (main){
-    const src = absoluteUrl(attrValue(main[0], 'src'), baseUrl);
+    const src = absoluteUrl(firstImageAttr(main[0], ['data-full','data-src','data-lazy-src','src']), baseUrl);
     if (src) images.push(src);
   }
   const btnRe = /<button\b[^>]*data-gallery-thumb[^>]*>/ig;
   let bm;
   while ((bm = btnRe.exec(fragment))){
-    const full = absoluteUrl(attrValue(bm[0], 'data-full'), baseUrl);
+    const full = absoluteUrl(firstImageAttr(bm[0], ['data-full','data-src','data-lazy-src']), baseUrl);
     if (full) images.push(full);
+  }
+  const imgRe = /<img\b[^>]*>/ig;
+  let im;
+  while ((im = imgRe.exec(fragment))){
+    const src = absoluteUrl(firstImageAttr(im[0], ['data-full','data-src','data-lazy-src','src']), baseUrl);
+    if (src) images.push(src);
   }
   return uniqueUrls(images);
 }

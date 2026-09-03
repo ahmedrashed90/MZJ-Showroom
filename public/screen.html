@@ -24,7 +24,7 @@
     function cleanText(s){ return String(s||'').replace(/\s+/g,' ').trim(); }
     function normArabic(s){ return cleanText(s).toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[ًٌٍَُِّْـ]/g,'').replace(/[^\u0600-\u06ff0-9a-z]+/g,' ').replace(/\s+/g,' ').trim(); }
     function uniq(arr){ var seen={}; return (arr||[]).map(cleanText).filter(function(x){ var k=normArabic(x); if(!x||seen[k])return false; seen[k]=1; return true; }); }
-    function badImage(url){ return /default-car|placeholder|no-image|noimage|logo|mzj-logo|favicon|icon|cropped|avatar|loader|spinner|blank/i.test(String(url||'')); }
+    function badImage(url){ return /default-car|placeholder|no-image|noimage|logo|mzj-logo|favicon|icon|cropped-site-icon|cropped-logo|avatar|loader|spinner|blank/i.test(String(url||'')); }
     function normUrl(v){ v=String(v||'').trim(); if(!v)return''; try{var u=new URL(v,location.origin);u.hash='';var p=u.pathname.replace(/\/{2,}/g,'/');if(p.length>1)p=p.replace(/\/+$/,'');return (u.origin.toLowerCase()+p+u.search).toLowerCase();}catch(e){return v.replace(/\/+$/,'').toLowerCase();} }
     function hash(str){ var h=2166136261;str=String(str||'');for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);}return 'car_'+(h>>>0).toString(16); }
 
@@ -96,13 +96,27 @@
       rows.some(function(row){ if(normArabic(row.name)===key){hit=row;return true;} return false; });
       return hit&&Array.isArray(hit.images)?uniq(hit.images).filter(function(u){return !badImage(u)&&!badLoaded[u];}):[];
     }
+    function imageKey(url){
+      try{var u=new URL(String(url||''),location.origin);return (u.origin.toLowerCase()+u.pathname.replace(/\/{2,}/g,'/')).toLowerCase();}
+      catch(e){return String(url||'').split('?')[0].split('#')[0].replace(/\/+$/,'').toLowerCase();}
+    }
+    function vehicleImagePool(){
+      if(!data)return[];
+      var out=[].concat(data.images||[],data.image?[data.image]:[]),rows=colorRows().external||[];
+      rows.forEach(function(row){out=out.concat(Array.isArray(row.images)?row.images:[]);});
+      return uniq(out).filter(function(u){return !badImage(u);});
+    }
+    function validManualImages(){
+      var pool=vehicleImagePool(),allowed={};pool.forEach(function(u){allowed[imageKey(u)]=u;});
+      return uniq([].concat(screenOptions.sliderImages||[],screenOptions.selectedImages||[])).map(function(u){return allowed[imageKey(u)]||'';}).filter(function(u){return u&&!badLoaded[u];});
+    }
     function images(){
       if(!data)return[];
-      var manual=uniq([].concat(screenOptions.sliderImages||[],screenOptions.selectedImages||[])).filter(function(u){return !badImage(u)&&!badLoaded[u];});
+      var manual=validManualImages();
       if(manual.length)return manual;
       var chosen=selectedColorName();
       if(chosen){var byColor=colorImages(chosen);if(byColor.length)return byColor;}
-      return uniq([].concat(data.images||[],data.image?[data.image]:[])).filter(function(u){return !badImage(u)&&!badLoaded[u];});
+      return vehicleImagePool().filter(function(u){return !badLoaded[u];});
     }
     function currentImage(){var arr=images();if(!arr.length)return'';if(imageIndex<0)imageIndex=arr.length-1;if(imageIndex>=arr.length)imageIndex=0;return arr[imageIndex];}
 
@@ -190,10 +204,38 @@
     }
     function updateImageOnly(){
       var img=document.getElementById('showroomCarImage'),src=currentImage();
-      if(img){if(src){img.src=src;img.classList.remove('hidden');}else{img.removeAttribute('src');img.classList.add('hidden');}}
+      if(img){
+        if(src){
+          img.dataset.originalSrc=src;
+          img.dataset.proxyTried='0';
+          if(img.getAttribute('src')!==src)img.src=src;
+          img.classList.remove('hidden');
+        }else{
+          img.removeAttribute('src');
+          img.removeAttribute('data-original-src');
+          img.classList.add('hidden');
+        }
+      }
       renderDots();
     }
-    function moveImage(step){var arr=images();if(arr.length<2)return;imageIndex=(imageIndex+step+arr.length)%arr.length;updateImageOnly();restartImageLoop();}
+    function moveImage(step){
+      var arr=images();
+      if(!arr.length){updateImageOnly();return;}
+      if(arr.length===1){imageIndex=0;updateImageOnly();restartImageLoop();return;}
+      imageIndex=(imageIndex+step+arr.length)%arr.length;updateImageOnly();restartImageLoop();
+    }
+    function handleImageError(img){
+      var original=img&&img.dataset?String(img.dataset.originalSrc||''):'';
+      if(original&&img.dataset.proxyTried!=='1'){
+        img.dataset.proxyTried='1';
+        img.src='/api/image-proxy?url='+encodeURIComponent(original)+'&_='+Date.now();
+        return;
+      }
+      if(original)badLoaded[original]=1;
+      var arr=images();
+      imageIndex=arr.length?Math.min(imageIndex,arr.length-1):0;
+      updateImageOnly();
+    }
     function startImageLoop(){var arr=images();if(arr.length>1)imageTimer=setInterval(function(){moveImage(1);},6500);}
     function restartImageLoop(){stopImageLoop();startImageLoop();}
 
@@ -204,7 +246,7 @@
     function bindRendered(){
       bindTechTabs();bindFeatureTabs();
       var prev=document.getElementById('imgPrev'),next=document.getElementById('imgNext');if(prev)prev.onclick=function(){moveImage(-1);};if(next)next.onclick=function(){moveImage(1);};
-      var img=document.getElementById('showroomCarImage');if(img)img.onerror=function(){if(this.src)badLoaded[this.src]=1;moveImage(1);};
+      var img=document.getElementById('showroomCarImage');if(img)img.onerror=function(){handleImageError(this);};
     }
 
     function cacheKey(){return screenOptions.carId?hash('id:'+screenOptions.carId):hash(screenOptions.carUrl);}

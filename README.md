@@ -1,6 +1,6 @@
-# MZJ Showroom v42 — Centered Image Arrows Clean
+# MZJ Showroom v43 — Robust Image Loading Clean
 
-Full clean rebuild of the showroom display/dashboard layer using the approved v42 presentation and the current MZJ vehicle + stock contracts as references.
+Clean image-loading reliability update based on the approved v42 presentation and current MZJ vehicle + stock contracts.
 
 ## Vehicle identity
 - Every screen document is independent: `showroom_screens/A1`, `showroom_screens/A2`, etc.
@@ -43,3 +43,12 @@ Full clean rebuild of the showroom display/dashboard layer using the approved v4
 - Node syntax checks for API, dashboard, screen and export scripts.
 - Canonical parser fixture test with 25 interior, 12 exterior and 14 safety items (all retained).
 - Canonical color-matrix fixture test with external/internal swatches and color-specific images.
+
+
+## v43 image reliability
+- Manual per-screen image selections are accepted only when they belong to the currently loaded vehicle.
+- Stale image URLs from older screen assignments no longer override the current vehicle gallery.
+- A failed direct image load retries through /api/image-proxy before being rejected.
+- Single-image fallback works correctly after a failed image.
+- Gallery parsing also supports data-src/data-lazy-src and gallery-contained image tags.
+- Over-broad cropped filename rejection was narrowed to site/logo crop patterns.
