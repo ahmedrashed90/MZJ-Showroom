@@ -1,7 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
-  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d7b18a"/><stop offset=".56" stop-color="#a86f42"/><stop offset="1" stop-color="#6e432b"/></linearGradient><pattern id="p" width="70" height="70" patternUnits="userSpaceOnUse"><path d="M0 35h70M35 0v70" stroke="#3f2618" stroke-opacity=".035" stroke-width="1.5"/></pattern></defs>
-  <rect width="1200" height="1200" fill="url(#bg)"/><rect width="1200" height="1200" fill="url(#p)"/>
-  <path d="M0 950c150-70 245-115 370-115 130 0 210 65 335 65 150 0 250-96 495-135v435H0z" fill="#5b341f" opacity=".26"/>
-  <g fill="#6d4329" opacity=".45"><rect x="110" y="670" width="210" height="230"/><rect x="342" y="590" width="250" height="310"/><rect x="630" y="710" width="180" height="190"/><path d="M110 670l105-90 105 90zM342 590l125-110 125 110zM630 710l90-80 90 80z"/></g>
-  <g fill="#f3dfc6" opacity=".28"><circle cx="930" cy="170" r="105"/><circle cx="930" cy="170" r="70" fill="#8a5635"/><path d="M895 270h70v170h-70z"/></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4a2d1f"/><stop offset=".5" stop-color="#7b4c2e"/><stop offset="1" stop-color="#2d1a13"/></linearGradient>
+    <pattern id="p" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M0 40 20 20l20 20 20-20 20 20M0 70l20-20 20 20 20-20 20 20" fill="none" stroke="#d8ad7c" stroke-opacity=".13"/></pattern>
+    <radialGradient id="r" cx="20%" cy="15%" r="75%"><stop stop-color="#e3b77f" stop-opacity=".16"/><stop offset="1" stop-color="#e3b77f" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#g)"/><rect width="1600" height="1000" fill="url(#p)"/><rect width="1600" height="1000" fill="url(#r)"/>
+  <g fill="#d8ad7c" fill-opacity=".15"><path d="M0 1000V845l58-46 44 36 61-68 54 52 74-82 64 68 67-48 79 85 67-58 76 70v146Z"/><path d="M1070 1000V900l76-55 55 43 66-73 62 55 74-82 79 74 118-86v224Z"/></g>
+  <g fill="none" stroke="#d8ad7c" stroke-opacity=".25" stroke-width="2"><path d="M140 110h250M140 126h190M1210 120h250M1280 136h180"/></g>
 </svg>

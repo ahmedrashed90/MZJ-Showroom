@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script>document.write('<link rel="stylesheet" href="/dashboard.css?mzjv57='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');</script>
+  <script>document.write('<link rel="stylesheet" href="/dashboard.css?mzjv58='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');</script>
 </head>
 <body class="dashboard-control-body">
   <div id="login" class="login hidden">
@@ -91,23 +91,22 @@
           <div id="themeSection" class="panel theme-selector-panel premium-theme-panel">
             <div class="theme-selector-head"><div><span class="eyebrow">التصميم العام لكل الشاشات</span><h3>اختر التصميم الموسمي العام</h3><div class="subtitle">اختيار التصميم هنا يطبّق على كل الشاشات مرة واحدة.</div></div><button class="btn primary" onclick="saveSelectedTheme()">حفظ وتطبيق على كل الشاشات</button></div>
             <div id="themePicker" class="theme-picker theme-picker-rich"></div>
-            <div id="nationalThemeConfig" class="national-theme-config hidden">
-              <div class="national-config-copy">
-                <span class="eyebrow">إعدادات اليوم الوطني</span>
-                <h4>هوية اليوم الوطني السعودي</h4>
-                <p>الرقم والشعار قابلان للتغيير كل سنة بدون تعديل السورس.</p>
+            <div id="themeIdentityConfig" class="theme-identity-config">
+              <div class="theme-config-copy">
+                <span class="eyebrow">إعدادات هوية التصميم</span>
+                <h4 id="themeConfigTitle">هوية المناسبة</h4>
+                <p>الشعار يظهر أعلى النص داخل فريم صور السيارة. كل تصميم له شعار ونص وحجم مستقل.</p>
               </div>
-              <div class="national-config-fields">
-                <label class="national-number-field">
-                  <span>رقم اليوم الوطني</span>
-                  <div class="national-number-input-wrap"><input id="nationalDayNumber" inputmode="numeric" maxlength="3" value="96" oninput="updateNationalDayNumber(this.value)"><b>اليوم الوطني السعودي</b></div>
-                </label>
-                <div class="national-logo-field">
-                  <span>شعار اليوم الوطني</span>
-                  <input id="nationalDayLogoFile" class="hidden" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="chooseNationalDayLogo(this)">
-                  <div class="national-logo-actions"><button class="btn small primary" type="button" onclick="document.getElementById('nationalDayLogoFile').click()">تغيير الشعار</button><button class="btn small" type="button" onclick="restoreDefaultNationalLogo()">استعادة شعار 96</button></div>
-                  <div id="nationalDayLogoPreview" class="national-logo-preview"></div>
+              <div class="theme-config-fields">
+                <div class="theme-logo-field">
+                  <span>شعار المناسبة</span>
+                  <input id="themeLogoFile" class="hidden" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="chooseThemeLogo(this)">
+                  <div class="theme-logo-actions"><button class="btn small primary" type="button" onclick="document.getElementById('themeLogoFile').click()">اختيار / تغيير الشعار</button><button class="btn small" type="button" onclick="removeThemeLogo()">إزالة الشعار</button></div>
+                  <div id="themeLogoPreview" class="theme-logo-preview"></div>
                 </div>
+                <label class="theme-text-field"><span>الكتابة تحت الشعار</span><input id="themeCaptionInput" type="text" maxlength="80" oninput="updateThemeCaption(this.value)" placeholder="اكتب النص الذي يظهر تحت الشعار"></label>
+                <label class="theme-size-field"><span>حجم الشعار</span><div class="theme-size-control"><input id="themeLogoSize" type="range" min="60" max="240" step="5" oninput="updateThemeLogoSize(this.value)"><b id="themeLogoSizeView">120px</b></div></label>
+                <label id="nationalNumberField" class="theme-number-field hidden"><span>رقم اليوم الوطني</span><div class="theme-number-input-wrap"><input id="nationalDayNumber" inputmode="numeric" maxlength="3" value="96" oninput="updateNationalDayNumber(this.value)"><b>اليوم الوطني السعودي</b></div></label>
               </div>
             </div>
           </div>
@@ -157,7 +156,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    document.write('<script src="/firebase-config.js?mzjv57='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+    document.write('<script src="/firebase-config.js?mzjv58='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
   </script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
@@ -172,7 +171,15 @@
       {id:'eid-adha',title:'عيد الأضحى',subtitle:'عيد أضحى مبارك'}
     ];
     var draft={color:'all',colorLabel:'',selectedImages:[],themeId:''},draftDirty=false;
-    var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right',activeThemeId:'ramadan',nationalDayNumber:'96',nationalDayLogoDataUrl:'/assets/themes/national-day-default.png'};
+    var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right',activeThemeId:'ramadan'};
+    var themeDefaults={
+      ramadan:{logoDataUrl:'',logoSize:120,caption:'رمضان يجمعنا'},
+      national:{logoDataUrl:'/assets/themes/national-day-default.png',logoSize:120,caption:'اليوم الوطني السعودي',nationalDayNumber:'96'},
+      founding:{logoDataUrl:'',logoSize:120,caption:'جذورنا تصنع مستقبلنا'},
+      'eid-fitr':{logoDataUrl:'',logoSize:120,caption:'عيدكم أجمل'},
+      'eid-adha':{logoDataUrl:'',logoSize:120,caption:'عيد أضحى مبارك'}
+    };
+    var themeSettings={};
 
     function $(id){return document.getElementById(id);}
     function esc(s){return String(s||'').replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];});}
@@ -192,7 +199,8 @@
     });
 
     async function init(){
-      await Promise.all([loadDisplaySettings(),loadScreens(),loadStock(false)]);
+      await loadDisplaySettings();
+      await Promise.all([loadThemeSettings(),loadScreens(),loadStock(false)]);
       selectScreen(selectedScreen);
     }
 
@@ -202,10 +210,8 @@
     }
     function renderDisplaySettings(){
       $('fontSizeView').textContent=displaySettings.featureFontSize+'px';$('logoSizeView').textContent=displaySettings.logoWidth+'px';$('logoPosition').value=displaySettings.logoPosition||'right';
-      if(!displaySettings.nationalDayNumber)displaySettings.nationalDayNumber='96';
-      if(!displaySettings.nationalDayLogoDataUrl)displaySettings.nationalDayLogoDataUrl='/assets/themes/national-day-default.png';
       var box=$('logoPreviewBox');if(displaySettings.logoDataUrl){box.className='logo-preview';box.innerHTML='<img src="'+esc(displaySettings.logoDataUrl)+'" alt="logo">';}else{box.className='logo-preview empty';box.innerHTML='<span>لا يوجد شعار</span>';}
-      renderNationalThemeSettings();
+      renderThemeIdentitySettings();
     }
     function changeFont(step){displaySettings.featureFontSize=Math.max(12,Math.min(26,Number(displaySettings.featureFontSize||18)+step));renderDisplaySettings();}
     function changeLogoSize(step){displaySettings.logoWidth=Math.max(60,Math.min(280,Number(displaySettings.logoWidth||120)+step));renderDisplaySettings();}
@@ -231,34 +237,33 @@
     }
 
     function themeById(id){return THEMES.find(function(t){return t.id===id;})||null;}
-    function nationalThemeLabel(){return 'اليوم الوطني السعودي '+cleanText(displaySettings.nationalDayNumber||'96');}
+    function themeSetting(id){return Object.assign({},themeDefaults[id]||themeDefaults.ramadan,themeSettings[id]||{});}
+    async function loadThemeSettings(){
+      await Promise.all(THEMES.map(async function(t){
+        try{var d=await db.collection('showroom_theme_settings').doc(t.id).get();var fallback={};if(t.id==='national'&&!d.exists){if(displaySettings.nationalDayLogoDataUrl)fallback.logoDataUrl=displaySettings.nationalDayLogoDataUrl;if(displaySettings.nationalDayNumber)fallback.nationalDayNumber=displaySettings.nationalDayNumber;}themeSettings[t.id]=Object.assign({},themeDefaults[t.id]||{},fallback,d.exists?(d.data()||{}):{});}catch(e){themeSettings[t.id]=Object.assign({},themeDefaults[t.id]||{});}
+      }));
+    }
+    function themeLabel(t){var cfg=themeSetting(t.id);if(t.id==='national')return 'اليوم الوطني السعودي '+cleanText(cfg.nationalDayNumber||'96');return cleanText(cfg.caption||t.subtitle||t.title);}
     function renderThemePicker(){
       var el=$('themePicker');if(!el)return;if($('themeScreenCode'))$('themeScreenCode').textContent='الكل';
-      el.innerHTML=THEMES.map(function(t){
-        var active=(draft.themeId||displaySettings.activeThemeId)===t.id;
-        var subtitle=t.id==='national'?nationalThemeLabel():t.subtitle;
-        var nationalLogo=t.id==='national'?'<img class="theme-national-mini-logo" src="'+esc(displaySettings.nationalDayLogoDataUrl||'/assets/themes/national-day-default.png')+'" alt="">':'';
-        return '<button type="button" class="theme-card theme-preview-'+t.id+' '+(active?'selected':'')+'" onclick="selectTheme(\''+t.id+'\')"><span class="theme-art"><i></i>'+nationalLogo+'<span class="theme-mini-mark">MZJ</span><b>'+esc(subtitle)+'</b><small>'+esc(t.title)+'</small></span><strong>'+esc(t.title)+'</strong><em>'+(active?'✓':'')+'</em></button>';
-      }).join('');
-      renderNationalThemeSettings();
+      el.innerHTML=THEMES.map(function(t){var active=(draft.themeId||displaySettings.activeThemeId)===t.id,cfg=themeSetting(t.id),logo=cfg.logoDataUrl?'<img class="theme-national-mini-logo" src="'+esc(cfg.logoDataUrl)+'" alt="">':'';return '<button type="button" class="theme-card theme-preview-'+t.id+' '+(active?'selected':'')+'" onclick="selectTheme(\''+t.id+'\')"><span class="theme-art"><i></i>'+logo+'<span class="theme-mini-mark">MZJ</span><b>'+esc(themeLabel(t))+'</b><small>'+esc(t.title)+'</small></span><strong>'+esc(t.title)+'</strong><em>'+(active?'✓':'')+'</em></button>';}).join('');
+      renderThemeIdentitySettings();
     }
     function selectTheme(id){if(!themeById(id))return;draft.themeId=id;draftDirty=true;renderThemePicker();toggleDraftNotice(true);}
-    function renderNationalThemeSettings(){
-      var box=$('nationalThemeConfig');if(!box)return;
-      var isNational=(draft.themeId||displaySettings.activeThemeId)==='national';
-      box.classList.toggle('hidden',!isNational);
-      if(!isNational)return;
-      var number=$('nationalDayNumber');if(number)number.value=cleanText(displaySettings.nationalDayNumber||'96');
-      var preview=$('nationalDayLogoPreview');if(preview){preview.innerHTML='<img src="'+esc(displaySettings.nationalDayLogoDataUrl||'/assets/themes/national-day-default.png')+'" alt="شعار اليوم الوطني"><div><strong>'+esc(nationalThemeLabel())+'</strong><small>سيظهر على كل شاشات العرض عند اختيار تصميم اليوم الوطني</small></div>';}
+    function currentThemeConfig(){var id=draft.themeId||displaySettings.activeThemeId||'ramadan';if(!themeSettings[id])themeSettings[id]=Object.assign({},themeDefaults[id]||themeDefaults.ramadan);return themeSettings[id];}
+    function renderThemeIdentitySettings(){
+      var box=$('themeIdentityConfig');if(!box)return;var id=draft.themeId||displaySettings.activeThemeId||'ramadan',t=themeById(id)||THEMES[0],cfg=currentThemeConfig();
+      $('themeConfigTitle').textContent='هوية '+t.title;
+      $('themeCaptionInput').value=cleanText(cfg.caption||'');
+      $('themeLogoSize').value=Math.max(60,Math.min(240,Number(cfg.logoSize||120)));$('themeLogoSizeView').textContent=$('themeLogoSize').value+'px';
+      $('nationalNumberField').classList.toggle('hidden',id!=='national');if(id==='national')$('nationalDayNumber').value=cleanText(cfg.nationalDayNumber||'96');
+      var preview=$('themeLogoPreview');preview.innerHTML=(cfg.logoDataUrl?'<img src="'+esc(cfg.logoDataUrl)+'" alt="شعار '+esc(t.title)+'" style="width:'+Math.max(60,Math.min(240,Number(cfg.logoSize||120)))+'px">':'<div class="theme-logo-empty">لا يوجد شعار مرفوع لهذا التصميم</div>')+'<div><strong>'+esc(cleanText(cfg.caption||''))+'</strong><small>'+esc(t.title)+'</small></div>';
     }
-    function updateNationalDayNumber(value){
-      var n=String(value||'').replace(/[^0-9]/g,'').slice(0,3);if(!n)n='96';displaySettings.nationalDayNumber=n;draftDirty=true;renderThemePicker();toggleDraftNotice(true);
-    }
-    function chooseNationalDayLogo(input){
-      var file=input.files&&input.files[0];if(!file)return;if(file.size>900*1024){setMsg('حجم شعار اليوم الوطني كبير. اختار ملف أقل من 900KB.','error');input.value='';return;}
-      var reader=new FileReader();reader.onload=function(){displaySettings.nationalDayLogoDataUrl=String(reader.result||'');draftDirty=true;renderThemePicker();toggleDraftNotice(true);};reader.readAsDataURL(file);
-    }
-    function restoreDefaultNationalLogo(){displaySettings.nationalDayLogoDataUrl='/assets/themes/national-day-default.png';draftDirty=true;renderThemePicker();toggleDraftNotice(true);}
+    function chooseThemeLogo(input){var file=input.files&&input.files[0];if(!file)return;if(file.size>600*1024){setMsg('حجم الشعار كبير. اختار ملف أقل من 600KB.','error');input.value='';return;}var reader=new FileReader();reader.onload=function(){currentThemeConfig().logoDataUrl=String(reader.result||'');draftDirty=true;renderThemeIdentitySettings();renderThemePicker();toggleDraftNotice(true);};reader.readAsDataURL(file);}
+    function removeThemeLogo(){var id=draft.themeId||displaySettings.activeThemeId||'ramadan';currentThemeConfig().logoDataUrl=(id==='national'?'/assets/themes/national-day-default.png':'');draftDirty=true;renderThemeIdentitySettings();renderThemePicker();toggleDraftNotice(true);}
+    function updateThemeCaption(value){currentThemeConfig().caption=String(value||'').slice(0,80);draftDirty=true;renderThemePicker();toggleDraftNotice(true);var p=$('themeLogoPreview');if(p)renderThemeIdentitySettings();}
+    function updateThemeLogoSize(value){var v=Math.max(60,Math.min(240,Number(value||120)));currentThemeConfig().logoSize=v;draftDirty=true;$('themeLogoSizeView').textContent=v+'px';renderThemeIdentitySettings();toggleDraftNotice(true);}
+    function updateNationalDayNumber(value){var n=String(value||'').replace(/[^0-9]/g,'').slice(0,3);if(!n)n='96';currentThemeConfig().nationalDayNumber=n;draftDirty=true;renderThemePicker();toggleDraftNotice(true);}
     function hasUnsavedVehicleDraft(){
       var s=screens[selectedScreen]||{},savedImages=Array.isArray(s.selectedImages)?s.selectedImages:[],draftImages=Array.isArray(draft.selectedImages)?draft.selectedImages:[];
       var currentCarId=selectedCar?String(selectedCar.id||''):String(s.carId||'');
@@ -267,18 +272,13 @@
     }
     async function saveSelectedTheme(){
       if(!draft.themeId||!themeById(draft.themeId)){setMsg('اختار تصميم العرض أولًا.','error');return;}
-      var stamp=Date.now();
+      var stamp=Date.now(),cfg=Object.assign({},currentThemeConfig());
       try{
         displaySettings.activeThemeId=draft.themeId;
-        await db.collection('showroom_settings').doc('display').set({activeThemeId:draft.themeId,nationalDayNumber:cleanText(displaySettings.nationalDayNumber||'96'),nationalDayLogoDataUrl:displaySettings.nationalDayLogoDataUrl||'/assets/themes/national-day-default.png',updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-        await Promise.all(CODES.map(function(code){
-          var old=screens[code]||{},payload={themeId:draft.themeId,forceRefresh:stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
-          screens[code]=Object.assign({},old,payload);
-          return db.collection('showroom_screens').doc(code).set(payload,{merge:true});
-        }));
-        draftDirty=hasUnsavedVehicleDraft();
-        toggleDraftNotice(draftDirty);renderThemePicker();renderScreenTabs();refreshPreviewFrame();
-        setMsg('تم حفظ تصميم '+themeById(draft.themeId).title+' وتطبيقه على كل الشاشات.','ok');
+        await db.collection('showroom_theme_settings').doc(draft.themeId).set(Object.assign({},cfg,{updatedAt:firebase.firestore.FieldValue.serverTimestamp()}),{merge:true});
+        await db.collection('showroom_settings').doc('display').set({activeThemeId:draft.themeId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+        await Promise.all(CODES.map(function(code){var old=screens[code]||{},payload={themeId:draft.themeId,forceRefresh:stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};screens[code]=Object.assign({},old,payload);return db.collection('showroom_screens').doc(code).set(payload,{merge:true});}));
+        draftDirty=hasUnsavedVehicleDraft();toggleDraftNotice(draftDirty);renderThemePicker();renderScreenTabs();refreshPreviewFrame();setMsg('تم حفظ تصميم '+themeById(draft.themeId).title+' وهوية الشعار وتطبيقه على كل الشاشات.','ok');
       }catch(e){setMsg('تعذر حفظ تصميم العرض: '+e.message,'error');}
     }
 

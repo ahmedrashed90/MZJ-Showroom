@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -14,21 +14,20 @@
     window.MZJ_PAGE_CACHE_BUSTER=String(Date.now());
     (function(){
       try{
-        if(window.caches&&caches.keys)caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k)}))}).catch(function(){});
-        if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){try{r.unregister()}catch(e){}})}).catch(function(){});
+        if(window.caches&&caches.keys){caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));}).catch(function(){});}
+        if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){try{r.unregister();}catch(e){}});}).catch(function(){});}
       }catch(e){}
-      document.write('<link rel="stylesheet" href="/screen.css?mzjv57='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');
     })();
+    document.write('<link rel="stylesheet" href="/screen.css?v58='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
-<body class="showroom-display-body">
+<body class="showroom-body">
   <div id="root" class="empty-state"><div><h1>جاري تحميل شاشة المعرض...</h1><p>يرجى الانتظار</p></div></div>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script>
-    document.write('<script src="/firebase-config.js?mzjv57='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
-    document.write('<script src="/screen.js?mzjv57='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
-  </script>
+  <script>document.write('<script src="/firebase-config.js?v58='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');</script>
+  <script>document.write('<script src="/screen.js?v58='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');</script>
 </body>
 </html>
