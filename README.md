@@ -1,57 +1,11 @@
-# MZJ Showroom Seasonal Design V61 CLEAN
+# MZJ Showroom Seasonal Design V62 CLEAN
 
-نسخة Clean جديدة لطبقة عرض شاشات المعرض مع الحفاظ على منطق البيانات والربط.
+Production source based on the clean showroom logic.
 
-## طبقة العرض
-- `public/screen.html` واجهة عرض مستقلة.
-- `public/screen.css` تصميم جديد بالكامل بدون Overrides متراكمة من V59.
-- `public/screen.js` طبقة عرض جديدة مع الحفاظ على Firestore وجلب السيارات والصور والألوان والكاش والـ QR والتنقل.
-
-## صور السيارات
-- مساحة الصورة Safe Area لا تعتمد على Mask يقص الصورة.
-- الصورة الأصلية تستخدم `object-fit: contain` لتناسب الصور الخارجية والداخلية والـ Details والزوايا المختلفة.
-- خلف الصورة نسخة Blur من نفس الصورة لتغطية اختلاف نسب الأبعاد بدون تمديد أو قص الصورة الأساسية.
-- زخارف المناسبة وإطارها خارج مساحة الصورة المهمة.
-
-## البيانات والمواصفات
-- الجانب الخاص بالبيانات مبني كـ Editorial Canvas واحد وليس مجموعة Cards متراصة.
-- العنوان والسعر والألوان والمواصفات الرئيسية والفنية والمميزات مرتبطة بنفس اللغة البصرية والخطوط والمنحنيات.
-- المواصفات الداخلية / الخارجية / الأمان: 14 عنصرًا في الصفحة، 7 يمين + 7 شمال، مع Pagination يدوي وتلقائي.
-
-## التصميمات
-- رمضان: كحلي وذهبي، زخارف هندسية فقط، بدون مسجد أو مبنى ديني.
-- اليوم الوطني: أخضر داكن وذهبي بهوية هندسية سعودية.
-- يوم التأسيس: بني وترابي بزخارف نجدية هندسية.
-- عيد الفطر: عاجي وشامبين وذهبي مع لمسات تركواز، بدون مسجد أو مبنى ديني.
-- عيد الأضحى: عنابي وذهبي/نحاسي بزخارف هندسية، بدون مسجد أو مبنى ديني.
-
-## هوية المناسبة من الداش بورد
-لكل تصميم بشكل مستقل:
-- رفع / تغيير شعار المناسبة.
-- التحكم في حجم الشعار.
-- كتابة النص أسفل الشعار.
-- التحكم في حجم خط النص أسفل الشعار.
-
-اليوم الوطني يدعم أيضًا تغيير الرقم مثل 96 ثم 97 في الأعوام التالية.
-
-## الخط
-- Tajawal هو الخط الأساسي لشاشة العرض والداش بورد.
-
-## التطبيق العام
-- `showroom_settings/display.activeThemeId` هو التصميم العام الفعال.
-- حفظ التصميم من الداش بورد يطبق على كل شاشات المعرض ويحدث `forceRefresh` لكل شاشة.
-
-## Firestore Collections المطلوبة
-- `showroom_screens`
-- `showroom_car_cache`
-- `showroom_settings`
-- `showroom_theme_settings`
-- `showroom_screen_logs`
-
-
-## V61 image-frame change
-- Removed the occasion side rail from the gallery completely.
-- The vehicle image frame now uses almost the entire left display area.
-- Occasion logo, caption, caption font size and National Day number are rendered as an overlay inside the image frame.
-- Vehicle images remain `object-fit: contain` with the existing adaptive blurred backdrop.
-- No changes were made to vehicle loading, Firestore screen assignment, QR, colors, specifications, feature pagination or dashboard theme settings.
+V62 change:
+- Removed the artificial dark halo behind the occasion identity overlay.
+- Removed CSS drop-shadow from the occasion logo.
+- Removed text-shadow from the occasion caption and National Day number.
+- No CSS override patch was appended; the identity component definition itself was rewritten.
+- Existing Firestore, vehicle, image, QR, feature, theme and dashboard logic remains unchanged.
+- Tajawal remains the primary interface font.

@@ -10,7 +10,7 @@ button{touch-action:manipulation}
 .hidden{display:none!important}
 
 /* =========================================================
-   MZJ SHOWROOM V60
+   MZJ SHOWROOM V62
    Fresh display layer. The image is a safe gallery surface.
    The information side is one editorial composition, not cards.
    ========================================================= */
@@ -55,7 +55,7 @@ button{touch-action:manipulation}
 
 /* -----------------------------
    LEFT: full-width adaptive image gallery
-   V61 clean rebuild: no side rail. Occasion identity lives on the photo.
+   V62 clean display: no side rail. Occasion identity lives on the photo without artificial shadows.
    ----------------------------- */
 .visual-zone{
   position:relative;isolation:isolate;overflow:hidden;direction:rtl;
@@ -141,24 +141,16 @@ button{touch-action:manipulation}
   display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;
   color:#fff;pointer-events:none;padding:8px 10px 11px
 }
-.theme-identity-overlay::before{
-  content:"";position:absolute;z-index:-1;inset:-24px -28px -30px;
-  background:radial-gradient(ellipse at 50% 42%,rgba(0,0,0,.46),rgba(0,0,0,.22) 44%,transparent 72%);
-  filter:blur(2px);pointer-events:none
-}
 .theme-identity-overlay img{
-  display:block;max-width:100%;max-height:150px;object-fit:contain;
-  filter:drop-shadow(0 7px 15px rgba(0,0,0,.45))
+  display:block;max-width:100%;max-height:150px;object-fit:contain
 }
 .theme-identity-overlay .identity-caption{
-  max-width:100%;font-weight:800;line-height:1.2;color:#fff;
-  text-shadow:0 2px 7px rgba(0,0,0,.94),0 0 18px rgba(0,0,0,.55);overflow-wrap:anywhere
+  max-width:100%;font-weight:800;line-height:1.2;color:#fff;overflow-wrap:anywhere
 }
 .theme-identity-overlay .identity-number{
-  font-size:clamp(30px,3vw,52px);line-height:.92;font-weight:900;color:var(--accent2);
-  letter-spacing:-1px;text-shadow:0 3px 10px rgba(0,0,0,.78)
+  font-size:clamp(30px,3vw,52px);line-height:.92;font-weight:900;color:var(--accent2);letter-spacing:-1px
 }
-.theme-eid-fitr .theme-identity-overlay .identity-caption{color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.88),0 0 18px rgba(0,0,0,.5)}
+.theme-eid-fitr .theme-identity-overlay .identity-caption{color:var(--deep)}
 
 .gallery-arrow{
   position:absolute;z-index:12;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;
