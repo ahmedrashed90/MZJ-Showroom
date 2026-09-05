@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
-    // MZJ v50: purge browser-managed site caches on every page open without touching auth/localStorage.
+    // MZJ v51: purge browser-managed site caches on every page open without touching auth/localStorage.
     window.MZJ_PAGE_CACHE_BUSTER = String(Date.now());
     (function(){
       try{
@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script>
-    document.write('<link rel="stylesheet" href="/styles.css?mzjv50='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');
+    document.write('<link rel="stylesheet" href="/styles.css?mzjv51='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -35,7 +35,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    document.write('<script src="/firebase-config.js?mzjv50='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+    document.write('<script src="/firebase-config.js?mzjv51='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
   </script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
@@ -190,7 +190,7 @@
       var t=currentTheme();if(!t)return'';
       return '<div class="showroom-season"><span>'+esc(t.sub)+'</span><strong>'+esc(t.title)+'</strong><i></i></div>';
     }
-    function featurePageSize(){return window.innerHeight<=900?6:8;}
+    function featurePageSize(){return window.innerHeight<=700?6:8;}
     function featurePageCount(section){var items=featureData()[section]||[];return Math.max(1,Math.ceil(items.length/featurePageSize()));}
     function featurePagerHtml(total){if(total<=1)return'';return '<div class="showroom-feature-pager"><button type="button" class="showroom-feature-page-btn" data-step="-1" aria-label="الصفحة السابقة">‹</button><strong>'+(featurePage+1)+' / '+total+'</strong><button type="button" class="showroom-feature-page-btn" data-step="1" aria-label="الصفحة التالية">›</button></div>';}
 
@@ -227,10 +227,10 @@
       var title=cleanText(data.title||screenOptions.carName||''),price=cleanText(data.price||screenOptions.carPrice||''),specs=mainSpecs(),theme=currentTheme();
       var root=document.getElementById('root');
       root.className='showroom-screen premium '+(theme?'has-season-theme theme-'+screenOptions.themeId:'theme-classic');
-      root.innerHTML='<section class="showroom-visual"><div class="showroom-stage"><img id="showroomCarImage" loading="eager" decoding="async" fetchpriority="high" alt="'+esc(title||'صورة السيارة')+'"></div>'+themeHtml()+'<div class="showroom-image-controls"><button id="imgPrev" type="button" aria-label="الصورة السابقة">‹</button><button id="imgNext" type="button" aria-label="الصورة التالية">›</button></div><div id="showroomDots" class="showroom-dots"></div></section>'+
-        '<aside class="showroom-details">'+logoHtml()+'<div class="showroom-title-row"><h1>'+esc(title)+'</h1>'+(price?'<div class="showroom-price-card"><small>السعر شامل ضريبة القيمة المضافة</small><div class="showroom-price">'+esc(price)+' <span>ر.س</span></div></div>':'')+'</div>'+colorsHtml()+
-        (specs.length?'<section class="showroom-main-specs"><div class="showroom-section-head"><strong>المواصفات الرئيسية</strong></div><div class="showroom-spec-grid">'+specs.map(function(x){return '<div class="showroom-spec"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>';}).join('')+'</div></section>':'')+
-        '<div id="techSlot">'+techHtml()+'</div><div id="featureSlot" class="showroom-feature-slot">'+featuresHtml()+'</div>'+qrHtml()+'</aside>';
+      root.innerHTML='<section class="showroom-visual"><div class="showroom-stage"><img id="showroomCarImage" loading="eager" decoding="async" fetchpriority="high" alt="'+esc(title||'صورة السيارة')+'"></div><div class="showroom-visual-shade"></div>'+themeHtml()+'<div class="showroom-image-controls"><button id="imgPrev" type="button" aria-label="الصورة السابقة">‹</button><button id="imgNext" type="button" aria-label="الصورة التالية">›</button></div><div id="showroomDots" class="showroom-dots"></div></section>'+
+        '<aside class="showroom-details"><div class="showroom-details-shell"><header class="showroom-hero">'+logoHtml()+'<div class="showroom-title-row"><h1>'+esc(title)+'</h1>'+(price?'<div class="showroom-price-card"><div class="showroom-price">'+esc(price)+' <span>ر.س</span></div><small>السعر شامل ضريبة القيمة المضافة</small></div>':'')+'</div>'+colorsHtml()+'</header>'+
+        '<main class="showroom-data-area">'+(specs.length?'<section class="showroom-main-specs"><div class="showroom-section-head"><strong>المواصفات الرئيسية</strong><i></i></div><div class="showroom-spec-grid">'+specs.map(function(x){return '<div class="showroom-spec"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>';}).join('')+'</div></section>':'')+
+        '<div id="techSlot">'+techHtml()+'</div><div id="featureSlot" class="showroom-feature-slot">'+featuresHtml()+'</div></main>'+qrHtml()+'</div></aside>';
       applyDisplaySettings();bindRendered();updateImageOnly();renderQr();startImageLoop();startFeatureLoop();
     }
 
