@@ -6,7 +6,7 @@
 - كل فتح لصفحة العرض ينشئ Cache-Buster جديد.
 - حذف Cache Storage الموجود للـ origin عند الفتح، إن كان المتصفح يدعمه.
 - إلغاء أي Service Worker قديم عند الفتح.
-- `styles.css` و `firebase-config.js` يتم تحميلهما بعنوان جديد في كل فتح.
+- `dashboard.css` و `screen.css` و `firebase-config.js` يتم تحميلهما بعنوان جديد في كل فتح.
 - صور السيارة عبر `image-proxy` تحمل Cache-Buster خاص بجلسة الصفحة.
 - الـ direct image fallback يحمل Cache-Buster أيضًا.
 - `/api/image-proxy` أصبح `no-store` بدل التخزين لمدة يوم.
@@ -18,7 +18,7 @@
 تقليل/إلغاء اعتماد شاشات الـ Kiosk على نسخة قديمة من HTML/CSS أو صور السيارة، بدون زيارة الشاشة لمسح الكاش يدويًا.
 
 
-## V55 National Day settings
+## V56 National Day settings
 - National Day defaults to 96.
 - Default logo: `public/assets/themes/national-day-default.png`.
 - Dashboard can change the National Day number and logo without editing source code.
