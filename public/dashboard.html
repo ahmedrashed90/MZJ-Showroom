@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script>document.write('<link rel="stylesheet" href="/dashboard.css?mzjv58='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');</script>
+  <script>document.write('<link rel="stylesheet" href="/dashboard.css?mzjv59='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');</script>
 </head>
 <body class="dashboard-control-body">
   <div id="login" class="login hidden">
@@ -95,7 +95,7 @@
               <div class="theme-config-copy">
                 <span class="eyebrow">إعدادات هوية التصميم</span>
                 <h4 id="themeConfigTitle">هوية المناسبة</h4>
-                <p>الشعار يظهر أعلى النص داخل فريم صور السيارة. كل تصميم له شعار ونص وحجم مستقل.</p>
+                <p>الشعار يظهر أعلى النص داخل تصميم الصورة. كل مناسبة لها شعار وحجم شعار ونص وحجم خط مستقل.</p>
               </div>
               <div class="theme-config-fields">
                 <div class="theme-logo-field">
@@ -105,7 +105,8 @@
                   <div id="themeLogoPreview" class="theme-logo-preview"></div>
                 </div>
                 <label class="theme-text-field"><span>الكتابة تحت الشعار</span><input id="themeCaptionInput" type="text" maxlength="80" oninput="updateThemeCaption(this.value)" placeholder="اكتب النص الذي يظهر تحت الشعار"></label>
-                <label class="theme-size-field"><span>حجم الشعار</span><div class="theme-size-control"><input id="themeLogoSize" type="range" min="60" max="240" step="5" oninput="updateThemeLogoSize(this.value)"><b id="themeLogoSizeView">120px</b></div></label>
+                <label class="theme-size-field"><span>حجم الشعار</span><div class="theme-size-control"><input id="themeLogoSize" type="range" min="60" max="260" step="5" oninput="updateThemeLogoSize(this.value)"><b id="themeLogoSizeView">120px</b></div></label>
+                <label class="theme-size-field"><span>حجم خط الكتابة تحت الشعار</span><div class="theme-size-control"><input id="themeCaptionFontSize" type="range" min="10" max="32" step="1" oninput="updateThemeCaptionFontSize(this.value)"><b id="themeCaptionFontSizeView">16px</b></div></label>
                 <label id="nationalNumberField" class="theme-number-field hidden"><span>رقم اليوم الوطني</span><div class="theme-number-input-wrap"><input id="nationalDayNumber" inputmode="numeric" maxlength="3" value="96" oninput="updateNationalDayNumber(this.value)"><b>اليوم الوطني السعودي</b></div></label>
               </div>
             </div>
@@ -156,7 +157,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    document.write('<script src="/firebase-config.js?mzjv58='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+    document.write('<script src="/firebase-config.js?mzjv59='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
   </script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
@@ -173,11 +174,11 @@
     var draft={color:'all',colorLabel:'',selectedImages:[],themeId:''},draftDirty=false;
     var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right',activeThemeId:'ramadan'};
     var themeDefaults={
-      ramadan:{logoDataUrl:'',logoSize:120,caption:'رمضان يجمعنا'},
-      national:{logoDataUrl:'/assets/themes/national-day-default.png',logoSize:120,caption:'اليوم الوطني السعودي',nationalDayNumber:'96'},
-      founding:{logoDataUrl:'',logoSize:120,caption:'جذورنا تصنع مستقبلنا'},
-      'eid-fitr':{logoDataUrl:'',logoSize:120,caption:'عيدكم أجمل'},
-      'eid-adha':{logoDataUrl:'',logoSize:120,caption:'عيد أضحى مبارك'}
+      ramadan:{logoDataUrl:'',logoSize:120,caption:'رمضان يجمعنا',captionFontSize:16},
+      national:{logoDataUrl:'/assets/themes/national-day-default.png',logoSize:120,caption:'اليوم الوطني السعودي',captionFontSize:16,nationalDayNumber:'96'},
+      founding:{logoDataUrl:'',logoSize:120,caption:'جذورنا تصنع مستقبلنا',captionFontSize:16},
+      'eid-fitr':{logoDataUrl:'',logoSize:120,caption:'عيدكم أجمل',captionFontSize:16},
+      'eid-adha':{logoDataUrl:'',logoSize:120,caption:'عيد أضحى مبارك',captionFontSize:16}
     };
     var themeSettings={};
 
@@ -255,14 +256,16 @@
       var box=$('themeIdentityConfig');if(!box)return;var id=draft.themeId||displaySettings.activeThemeId||'ramadan',t=themeById(id)||THEMES[0],cfg=currentThemeConfig();
       $('themeConfigTitle').textContent='هوية '+t.title;
       $('themeCaptionInput').value=cleanText(cfg.caption||'');
-      $('themeLogoSize').value=Math.max(60,Math.min(240,Number(cfg.logoSize||120)));$('themeLogoSizeView').textContent=$('themeLogoSize').value+'px';
+      $('themeLogoSize').value=Math.max(60,Math.min(260,Number(cfg.logoSize||120)));$('themeLogoSizeView').textContent=$('themeLogoSize').value+'px';
+      $('themeCaptionFontSize').value=Math.max(10,Math.min(32,Number(cfg.captionFontSize||16)));$('themeCaptionFontSizeView').textContent=$('themeCaptionFontSize').value+'px';
       $('nationalNumberField').classList.toggle('hidden',id!=='national');if(id==='national')$('nationalDayNumber').value=cleanText(cfg.nationalDayNumber||'96');
-      var preview=$('themeLogoPreview');preview.innerHTML=(cfg.logoDataUrl?'<img src="'+esc(cfg.logoDataUrl)+'" alt="شعار '+esc(t.title)+'" style="width:'+Math.max(60,Math.min(240,Number(cfg.logoSize||120)))+'px">':'<div class="theme-logo-empty">لا يوجد شعار مرفوع لهذا التصميم</div>')+'<div><strong>'+esc(cleanText(cfg.caption||''))+'</strong><small>'+esc(t.title)+'</small></div>';
+      var preview=$('themeLogoPreview');preview.innerHTML=(cfg.logoDataUrl?'<img src="'+esc(cfg.logoDataUrl)+'" alt="شعار '+esc(t.title)+'" style="width:'+Math.max(60,Math.min(260,Number(cfg.logoSize||120)))+'px">':'<div class="theme-logo-empty">لا يوجد شعار مرفوع لهذا التصميم</div>')+'<div><strong style="font-size:'+Math.max(10,Math.min(32,Number(cfg.captionFontSize||16)))+'px">'+esc(cleanText(cfg.caption||''))+'</strong><small>'+esc(t.title)+'</small></div>';
     }
     function chooseThemeLogo(input){var file=input.files&&input.files[0];if(!file)return;if(file.size>600*1024){setMsg('حجم الشعار كبير. اختار ملف أقل من 600KB.','error');input.value='';return;}var reader=new FileReader();reader.onload=function(){currentThemeConfig().logoDataUrl=String(reader.result||'');draftDirty=true;renderThemeIdentitySettings();renderThemePicker();toggleDraftNotice(true);};reader.readAsDataURL(file);}
     function removeThemeLogo(){var id=draft.themeId||displaySettings.activeThemeId||'ramadan';currentThemeConfig().logoDataUrl=(id==='national'?'/assets/themes/national-day-default.png':'');draftDirty=true;renderThemeIdentitySettings();renderThemePicker();toggleDraftNotice(true);}
     function updateThemeCaption(value){currentThemeConfig().caption=String(value||'').slice(0,80);draftDirty=true;renderThemePicker();toggleDraftNotice(true);var p=$('themeLogoPreview');if(p)renderThemeIdentitySettings();}
-    function updateThemeLogoSize(value){var v=Math.max(60,Math.min(240,Number(value||120)));currentThemeConfig().logoSize=v;draftDirty=true;$('themeLogoSizeView').textContent=v+'px';renderThemeIdentitySettings();toggleDraftNotice(true);}
+    function updateThemeLogoSize(value){var v=Math.max(60,Math.min(260,Number(value||120)));currentThemeConfig().logoSize=v;draftDirty=true;$('themeLogoSizeView').textContent=v+'px';renderThemeIdentitySettings();toggleDraftNotice(true);}
+    function updateThemeCaptionFontSize(value){var v=Math.max(10,Math.min(32,Number(value||16)));currentThemeConfig().captionFontSize=v;draftDirty=true;$('themeCaptionFontSizeView').textContent=v+'px';renderThemeIdentitySettings();toggleDraftNotice(true);}
     function updateNationalDayNumber(value){var n=String(value||'').replace(/[^0-9]/g,'').slice(0,3);if(!n)n='96';currentThemeConfig().nationalDayNumber=n;draftDirty=true;renderThemePicker();toggleDraftNotice(true);}
     function hasUnsavedVehicleDraft(){
       var s=screens[selectedScreen]||{},savedImages=Array.isArray(s.selectedImages)?s.selectedImages:[],draftImages=Array.isArray(draft.selectedImages)?draft.selectedImages:[];

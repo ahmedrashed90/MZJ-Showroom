@@ -1,6 +1,6 @@
 {
-  "name": "mzj-showroom-seasonal-redesign-clean",
-  "version": "51.0.0",
+  "name": "mzj-showroom-seasonal-design-v59-clean",
+  "version": "59.0.0",
   "private": true,
   "main": "server.js",
   "scripts": {
