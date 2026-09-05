@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
-  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8e9d9"/><stop offset=".6" stop-color="#d8a47f"/><stop offset="1" stop-color="#8f5a3e"/></linearGradient></defs>
-  <rect width="1200" height="1200" fill="url(#bg)"/>
-  <circle cx="965" cy="185" r="150" fill="#fff6e8" opacity=".3"/>
-  <g fill="#5b392a" opacity=".34"><path d="M0 900l210-170 170 130 190-210 210 170 180-135 240 190v325H0z"/><path d="M70 1200c80-160 150-235 245-235 120 0 185 115 285 115 110 0 175-160 320-160 95 0 180 62 280 160v120z" opacity=".5"/></g>
-  <g fill="#6d4532" opacity=".32"><rect x="120" y="240" width="150" height="150" rx="4"/><rect x="138" y="258" width="114" height="114" fill="none" stroke="#f6dcbf" stroke-width="6"/><rect x="180" y="220" width="30" height="24"/><rect x="170" y="390" width="50" height="72"/></g>
-  <g fill="none" stroke="#f6e2c9" stroke-width="8" opacity=".26"><path d="M795 370c90-80 180-80 270 0"/><path d="M810 410c80-62 160-62 240 0"/></g>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#260d18"/><stop offset=".58" stop-color="#5b2638"/><stop offset="1" stop-color="#35131f"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#e0a16e" stop-opacity=".26"/><stop offset="1" stop-color="#e0a16e" stop-opacity="0"/></radialGradient>
+    <pattern id="arab" width="132" height="132" patternUnits="userSpaceOnUse"><path d="M66 10c12 23 23 34 46 46-23 12-34 23-46 46-12-23-23-34-46-46 23-12 34-23 46-46z" fill="none" stroke="#e0a16e" stroke-opacity=".055" stroke-width="2"/><circle cx="66" cy="66" r="12" fill="none" stroke="#e0a16e" stroke-opacity=".04"/></pattern>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#bg)"/><rect width="1200" height="1200" fill="url(#arab)"/>
+  <circle cx="975" cy="185" r="250" fill="url(#glow)"/>
+  <circle cx="960" cy="175" r="76" fill="#dda06f" opacity=".76"/><circle cx="995" cy="145" r="76" fill="#562338"/>
+  <g stroke="#dfa46f" fill="none" opacity=".27"><path d="M145 0v168" stroke-width="4"/><path d="M108 168h74l-9 28h-56z"/><rect x="122" y="196" width="46" height="74" rx="8"/><path d="M133 270h24l-4 38h-16z"/></g>
+  <g fill="#dfa46f" opacity=".22"><path d="M320 155l6 13 13 6-13 6-6 13-6-13-13-6 13-6z"/><path d="M770 105l5 10 10 5-10 5-5 10-5-10-10-5 10-5z"/><path d="M1015 395l7 15 15 7-15 7-7 15-7-15-15-7 15-7z"/></g>
+  <g stroke="#dfa46f" fill="none" opacity=".18"><path d="M0 1010c170-70 318-65 450 5 150 80 295 69 430-9 108-63 208-73 320-28" stroke-width="4"/><path d="M0 1046c170-58 313-51 441 16 145 76 290 66 425-9 111-62 218-67 334-18" stroke-width="2"/></g>
 </svg>

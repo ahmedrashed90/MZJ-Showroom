@@ -17,7 +17,7 @@
         if(window.caches&&caches.keys)caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k)}))}).catch(function(){});
         if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){try{r.unregister()}catch(e){}})}).catch(function(){});
       }catch(e){}
-      document.write('<link rel="stylesheet" href="/screen.css?mzjv56='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');
+      document.write('<link rel="stylesheet" href="/screen.css?mzjv57='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');
     })();
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -27,8 +27,8 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    document.write('<script src="/firebase-config.js?mzjv56='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
-    document.write('<script src="/screen.js?mzjv56='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+    document.write('<script src="/firebase-config.js?mzjv57='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+    document.write('<script src="/screen.js?mzjv57='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
   </script>
 </body>
 </html>

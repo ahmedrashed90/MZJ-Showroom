@@ -1,6 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
-  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffdf8"/><stop offset=".62" stop-color="#f0dfb5"/><stop offset="1" stop-color="#c8a35d"/></linearGradient><radialGradient id="g"><stop stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
-  <rect width="1200" height="1200" fill="url(#bg)"/><circle cx="210" cy="185" r="210" fill="url(#g)"/>
-  <g stroke="#8b672f" fill="none" opacity=".36"><path d="M0 1000c170-70 260-100 390-100 115 0 195 52 300 52 138 0 225-72 510-147" stroke-width="6"/><path d="M690 1000V760h60v240m40 0V680h78v320m34 0V810h64v190" stroke-width="5"/><path d="M660 760h118l-59-95zM760 680h136l-68-112zM875 810h118l-59-92z" stroke-width="5"/></g>
-  <g stroke="#9d7739" opacity=".48"><path d="M170 0v210"/><path d="M126 210h88l-12 36h-64z" fill="#d7b86b"/><rect x="145" y="246" width="50" height="90" rx="10" fill="#fff" fill-opacity=".32" stroke-width="4"/><path d="M155 336h30l-6 46h-18z" fill="#b58a42"/></g>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffef9"/><stop offset=".58" stop-color="#f2e7ce"/><stop offset="1" stop-color="#d7bb82"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#fff" stop-opacity=".98"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <pattern id="diamond" width="120" height="120" patternUnits="userSpaceOnUse"><path d="M60 12l48 48-48 48L12 60z" fill="none" stroke="#9b6e2b" stroke-opacity=".045" stroke-width="2"/><path d="M60 32l28 28-28 28-28-28z" fill="none" stroke="#9b6e2b" stroke-opacity=".035"/></pattern>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#bg)"/><rect width="1200" height="1200" fill="url(#diamond)"/>
+  <circle cx="185" cy="175" r="260" fill="url(#glow)"/>
+  <circle cx="965" cy="190" r="82" fill="#c79945" opacity=".72"/><circle cx="1000" cy="158" r="82" fill="#f4ead4"/>
+  <g fill="#b98a39" opacity=".34"><path d="M180 120l7 15 15 7-15 7-7 15-7-15-15-7 15-7z"/><path d="M400 235l5 11 11 5-11 5-5 11-5-11-11-5 11-5z"/><path d="M785 95l6 13 13 6-13 6-6 13-6-13-13-6 13-6z"/></g>
+  <g stroke="#ad7b2e" fill="none" opacity=".22"><path d="M0 980c180-52 305-43 435 24 142 74 282 51 414-26 120-70 236-72 351-20" stroke-width="4"/><path d="M0 1020c174-42 304-31 425 30 146 74 286 64 423-15 124-72 239-73 352-19" stroke-width="2"/></g>
+  <g stroke="#ad7b2e" fill="none" opacity=".28"><path d="M170 0v145" stroke-width="4"/><path d="M136 145h68l-8 24h-52z"/><rect x="148" y="169" width="44" height="70" rx="8"/><path d="M158 239h24l-4 35h-16z"/></g>
 </svg>
