@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
-    // MZJ v52: purge browser-managed site caches on every page open without touching auth/localStorage.
+    // MZJ v53: purge browser-managed site caches on every page open without touching auth/localStorage.
     window.MZJ_PAGE_CACHE_BUSTER = String(Date.now());
     (function(){
       try{
@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script>
-    document.write('<link rel="stylesheet" href="/styles.css?mzjv52='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');
+    document.write('<link rel="stylesheet" href="/styles.css?mzjv53='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -35,7 +35,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    document.write('<script src="/firebase-config.js?mzjv52='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+    document.write('<script src="/firebase-config.js?mzjv53='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
   </script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
@@ -60,13 +60,13 @@
     var screenId=getScreenId();
     var data=null;
     var screenOptions={carId:'',carUrl:'',carName:'',carPrice:'',imageFilterColor:'all',imageFilterLabel:'',selectedImages:[],sliderImages:[],sliderMode:'all',themeId:''};
-    var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right'};
+    var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right',activeThemeId:'ramadan'};
     var THEME_META={
-      'ramadan':{title:'رمضان'},
-      'national':{title:'اليوم الوطني'},
-      'founding':{title:'يوم التأسيس'},
-      'eid-fitr':{title:'عيد الفطر'},
-      'eid-adha':{title:'عيد الأضحى'}
+      'ramadan':{title:'رمضان كريم',sub:'شهر الخير'},
+      'national':{title:'عزنا بطبعنا',sub:'اليوم الوطني السعودي'},
+      'founding':{title:'يوم بدينا',sub:'يوم التأسيس'},
+      'eid-fitr':{title:'عيد فطر مبارك',sub:'كل عام وأنتم بخير'},
+      'eid-adha':{title:'عيد أضحى مبارك',sub:'كل عام وأنتم بخير'}
     };
     var imageIndex=0;
     var techIndex=0;
@@ -77,6 +77,7 @@
     var badLoaded={};
     var lastVehicleKey='';
     var lastForceRefresh=0;
+    var lastGlobalThemeId='';
 
     function empty(msg){
       stopImageLoop();stopFeatureLoop();
@@ -89,6 +90,7 @@
 
     function listenDisplaySettings(){
       db.collection('showroom_settings').doc('display').onSnapshot(function(doc){
+        var rerenderTheme=false;
         if(doc.exists){
           var d=doc.data()||{};
           if(d.featureFontSize!==undefined) displaySettings.featureFontSize=d.featureFontSize;
@@ -96,8 +98,15 @@
           if(d.logoWidth!==undefined) displaySettings.logoWidth=d.logoWidth;
           if(d.logoPosition!==undefined) displaySettings.logoPosition=d.logoPosition;
           else if(d.headerPosition!==undefined) displaySettings.logoPosition=d.headerPosition;
+          if(d.activeThemeId!==undefined){
+            var nextTheme=String(d.activeThemeId||'').trim();
+            if(nextTheme && nextTheme!==displaySettings.activeThemeId){ rerenderTheme=true; }
+            displaySettings.activeThemeId=nextTheme||displaySettings.activeThemeId||'ramadan';
+            lastGlobalThemeId=displaySettings.activeThemeId;
+          }
         }
         applyDisplaySettings();
+        if(rerenderTheme && data) render();
       },function(){applyDisplaySettings();});
     }
 
@@ -185,12 +194,10 @@
     function validFeatureSections(){var d=featureData();return ['interior','exterior','safety'].filter(function(k){return d[k].length;});}
     function featureTitle(key){return key==='interior'?'المواصفات الداخلية':key==='exterior'?'المواصفات الخارجية':'مواصفات الأمان';}
 
-    function currentTheme(){return THEME_META[screenOptions.themeId]||null;}
-    function themeHtml(){
-      // Seasonal identity is visual-only. No greeting/banner is rendered over the vehicle.
-      return '';
-    }
-    function featurePageSize(){return window.innerHeight<=700?6:8;}
+    function effectiveThemeId(){ return String(displaySettings.activeThemeId||screenOptions.themeId||'ramadan'); }
+    function currentTheme(){return THEME_META[effectiveThemeId()]||null;}
+    function themeHtml(){ return ''; }
+    function featurePageSize(){return 14;}
     function featurePageCount(section){var items=featureData()[section]||[];return Math.max(1,Math.ceil(items.length/featurePageSize()));}
     function featurePagerHtml(total){if(total<=1)return'';return '<div class="showroom-feature-pager"><button type="button" class="showroom-feature-page-btn" data-step="-1" aria-label="الصفحة السابقة">‹</button><strong>'+(featurePage+1)+' / '+total+'</strong><button type="button" class="showroom-feature-page-btn" data-step="1" aria-label="الصفحة التالية">›</button></div>';}
 
@@ -214,20 +221,25 @@
       return '<section class="showroom-tech-card"><div class="showroom-section-head fixed"><strong>المواصفات الفنية</strong></div><div class="showroom-tech-tabs">'+groups.map(function(x,i){return '<button type="button" class="showroom-tech-tab '+(i===techIndex?'active':'')+'" data-tech="'+i+'">'+esc(x.title)+'</button>';}).join('')+'</div><div class="showroom-tech-grid">'+g.items.map(function(x){return '<div class="showroom-tech-spec"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>';}).join('')+'</div></section>';
     }
     function featuresHtml(){
-      var groups=featureData(),valid=validFeatureSections();if(!valid.length)return'';if(valid.indexOf(featureSection)<0){featureSection=valid[0];featurePage=0;}
-      var items=groups[featureSection]||[],size=featurePageSize(),pages=Math.max(1,Math.ceil(items.length/size));if(featurePage>=pages)featurePage=0;if(featurePage<0)featurePage=pages-1;
+      var groups=featureData(),valid=validFeatureSections();
+      if(!valid.length)return'';
+      if(valid.indexOf(featureSection)<0){featureSection=valid[0];featurePage=0;}
+      var items=groups[featureSection]||[],size=featurePageSize(),pages=Math.max(1,Math.ceil(items.length/size));
+      if(featurePage>=pages)featurePage=0;if(featurePage<0)featurePage=pages-1;
       var visible=items.slice(featurePage*size,(featurePage+1)*size);
-      return '<section class="showroom-feature-card"><div class="showroom-feature-tabs">'+valid.map(function(k){return '<button type="button" class="showroom-feature-tab '+(k===featureSection?'active':'')+'" data-section="'+k+'">'+esc(featureTitle(k))+'</button>';}).join('')+'</div><div id="featureScroll" class="showroom-feature-scroll"><div class="showroom-features">'+visible.map(function(x){return '<div class="showroom-feature"><i>✓</i><span>'+esc(x)+'</span></div>';}).join('')+'</div></div>'+featurePagerHtml(pages)+'</section>';
+      var split=Math.ceil(visible.length/2),rightCol=visible.slice(0,Math.min(7,split)),leftCol=visible.slice(Math.min(7,split),14);
+      function featureItemsHtml(arr){return arr.map(function(x){return '<div class="showroom-feature"><i>✓</i><span>'+esc(x)+'</span></div>';}).join('');}
+      return '<section class="showroom-feature-card"><div class="showroom-feature-tabs">'+valid.map(function(k){return '<button type="button" class="showroom-feature-tab '+(k===featureSection?'active':'')+'" data-section="'+k+'">'+esc(featureTitle(k))+'</button>';}).join('')+'</div><div id="featureScroll" class="showroom-feature-scroll"><div class="showroom-feature-columns"><div class="showroom-feature-column">'+featureItemsHtml(rightCol)+'</div><div class="showroom-feature-column">'+featureItemsHtml(leftCol)+'</div></div></div>'+featurePagerHtml(pages)+'</section>';
     }
     function qrHtml(){return '<footer class="showroom-bottom"><div class="showroom-bottom-copy"><strong>تفاصيل السيارة على جوالك</strong><span>امسح الكود لفتح نفس السيارة</span></div><div class="showroom-scan"><div><b>MZJ CARS</b><span>عرض التفاصيل الكاملة</span></div><div id="showroomQr" class="showroom-qr"></div></div></footer>';}
 
     function render(){
       if(!data){empty();return;}
       stopImageLoop();stopFeatureLoop();
-      var title=cleanText(data.title||screenOptions.carName||''),price=cleanText(data.price||screenOptions.carPrice||''),specs=mainSpecs(),theme=currentTheme();
+      var title=cleanText(data.title||screenOptions.carName||''),price=cleanText(data.price||screenOptions.carPrice||''),specs=mainSpecs(),themeId=effectiveThemeId(),theme=currentTheme();
       var root=document.getElementById('root');
-      root.className='showroom-screen premium '+(theme?'has-season-theme theme-'+screenOptions.themeId:'theme-classic');
-      root.innerHTML='<section class="showroom-visual"><div class="showroom-stage"><img id="showroomCarImage" loading="eager" decoding="async" fetchpriority="high" alt="'+esc(title||'صورة السيارة')+'"></div><div class="showroom-visual-shade"></div>'+themeHtml()+'<div class="showroom-image-controls"><button id="imgPrev" type="button" aria-label="الصورة السابقة">‹</button><button id="imgNext" type="button" aria-label="الصورة التالية">›</button></div><div id="showroomDots" class="showroom-dots"></div></section>'+
+      root.className='showroom-screen premium '+(theme?'has-season-theme theme-'+themeId:'theme-classic');
+      root.innerHTML='<section class="showroom-visual"><div class="showroom-stage"><img id="showroomCarImage" loading="eager" decoding="async" fetchpriority="high" alt="'+esc(title||'صورة السيارة')+'"></div><div class="showroom-visual-shade"></div><div class="showroom-image-controls"><button id="imgPrev" type="button" aria-label="الصورة السابقة">‹</button><button id="imgNext" type="button" aria-label="الصورة التالية">›</button></div><div id="showroomDots" class="showroom-dots"></div></section>'+
         '<aside class="showroom-details"><div class="showroom-details-shell"><header class="showroom-hero">'+logoHtml()+'<div class="showroom-title-row"><h1>'+esc(title)+'</h1>'+(price?'<div class="showroom-price-card"><div class="showroom-price">'+esc(price)+' <span>ر.س</span></div><small>السعر شامل ضريبة القيمة المضافة</small></div>':'')+'</div>'+colorsHtml()+'</header>'+
         '<main class="showroom-data-area">'+(specs.length?'<section class="showroom-main-specs"><div class="showroom-section-head"><strong>المواصفات الرئيسية</strong><i></i></div><div class="showroom-spec-grid">'+specs.map(function(x){return '<div class="showroom-spec"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>';}).join('')+'</div></section>':'')+
         '<div id="techSlot">'+techHtml()+'</div><div id="featureSlot" class="showroom-feature-slot">'+featuresHtml()+'</div></main>'+qrHtml()+'</div></aside>';

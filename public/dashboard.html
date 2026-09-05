@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script>document.write('<link rel="stylesheet" href="/styles.css?mzjv52='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');</script>
+  <script>document.write('<link rel="stylesheet" href="/styles.css?mzjv53='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');</script>
 </head>
 <body class="dashboard-control-body">
   <div id="login" class="login hidden">
@@ -89,7 +89,7 @@
           </div>
 
           <div id="themeSection" class="panel theme-selector-panel premium-theme-panel">
-            <div class="theme-selector-head"><div><span class="eyebrow">تصميم الشاشة <b id="themeScreenCode">A1</b></span><h3>اختر هوية المناسبة</h3><div class="subtitle">كل شاشة تحفظ تصميمها بشكل مستقل.</div></div><button class="btn primary" onclick="saveSelectedTheme()">حفظ التصميم</button></div>
+            <div class="theme-selector-head"><div><span class="eyebrow">التصميم العام لكل الشاشات</span><h3>اختر التصميم الموسمي العام</h3><div class="subtitle">اختيار التصميم هنا يطبّق على كل الشاشات مرة واحدة.</div></div><button class="btn primary" onclick="saveSelectedTheme()">حفظ وتطبيق على كل الشاشات</button></div>
             <div id="themePicker" class="theme-picker theme-picker-rich"></div>
           </div>
         </section>
@@ -138,7 +138,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    document.write('<script src="/firebase-config.js?mzjv52='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+    document.write('<script src="/firebase-config.js?mzjv51='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
   </script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
@@ -146,14 +146,14 @@
     var CODES=['A1','A2','A3','A4','A5','A6','A7','A8','A9','A10'];
     var screens={},stockItems=[],selectedScreen='A1',selectedCar=null,selectedCarData=null,inspectorTab='overview';
     var THEMES=[
-      {id:'ramadan',title:'رمضان',subtitle:'هوية رمضان'},
-      {id:'national',title:'اليوم الوطني',subtitle:'هوية اليوم الوطني'},
-      {id:'founding',title:'يوم التأسيس',subtitle:'هوية يوم التأسيس'},
-      {id:'eid-fitr',title:'عيد الفطر',subtitle:'هوية عيد الفطر'},
-      {id:'eid-adha',title:'عيد الأضحى',subtitle:'هوية عيد الأضحى'}
+      {id:'ramadan',title:'رمضان',subtitle:'رمضان كريم'},
+      {id:'national',title:'اليوم الوطني',subtitle:'اليوم الوطني السعودي'},
+      {id:'founding',title:'يوم التأسيس',subtitle:'يوم بدينا'},
+      {id:'eid-fitr',title:'عيد الفطر',subtitle:'عيد فطر مبارك'},
+      {id:'eid-adha',title:'عيد الأضحى',subtitle:'عيد أضحى مبارك'}
     ];
     var draft={color:'all',colorLabel:'',selectedImages:[],themeId:''},draftDirty=false;
-    var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right'};
+    var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right',activeThemeId:'ramadan'};
 
     function $(id){return document.getElementById(id);}
     function esc(s){return String(s||'').replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];});}
@@ -194,7 +194,7 @@
     }
     async function saveDisplaySettings(){
       displaySettings.logoPosition=$('logoPosition').value||'right';
-      try{await db.collection('showroom_settings').doc('display').set(Object.assign({},displaySettings,{updatedAt:firebase.firestore.FieldValue.serverTimestamp()}),{merge:true});setMsg('تم حفظ إعدادات العرض وتطبيقها على كل الشاشات.','ok');refreshPreviewFrame();}catch(e){setMsg('تعذر حفظ إعدادات العرض: '+e.message,'error');}
+      try{await db.collection('showroom_settings').doc('display').set(Object.assign({},displaySettings,{activeThemeId:displaySettings.activeThemeId||draft.themeId||'ramadan',updatedAt:firebase.firestore.FieldValue.serverTimestamp()}),{merge:true});setMsg('تم حفظ إعدادات العرض وتطبيقها على كل الشاشات.','ok');refreshPreviewFrame();}catch(e){setMsg('تعذر حفظ إعدادات العرض: '+e.message,'error');}
     }
 
     async function loadScreens(){
@@ -210,8 +210,8 @@
 
     function themeById(id){return THEMES.find(function(t){return t.id===id;})||null;}
     function renderThemePicker(){
-      var el=$('themePicker');if(!el)return;$('themeScreenCode').textContent=selectedScreen;
-      el.innerHTML=THEMES.map(function(t){var active=draft.themeId===t.id;return '<button type="button" class="theme-card theme-preview-'+t.id+' '+(active?'selected':'')+'" onclick="selectTheme(\''+t.id+'\')"><span class="theme-art"><i></i><span class="theme-mini-mark">MZJ</span><b>'+esc(t.subtitle)+'</b><small>'+esc(t.title)+'</small></span><strong>'+esc(t.title)+'</strong><em>'+(active?'✓':'')+'</em></button>';}).join('');
+      var el=$('themePicker');if(!el)return;if($('themeScreenCode'))$('themeScreenCode').textContent='الكل';
+      el.innerHTML=THEMES.map(function(t){var active=(draft.themeId||displaySettings.activeThemeId)===t.id;return '<button type="button" class="theme-card theme-preview-'+t.id+' '+(active?'selected':'')+'" onclick="selectTheme(\''+t.id+'\')"><span class="theme-art"><i></i><span class="theme-mini-mark">MZJ</span><b>'+esc(t.subtitle)+'</b><small>'+esc(t.title)+'</small></span><strong>'+esc(t.title)+'</strong><em>'+(active?'✓':'')+'</em></button>';}).join('');
     }
     function selectTheme(id){if(!themeById(id))return;draft.themeId=id;draftDirty=true;renderThemePicker();toggleDraftNotice(true);}
     function hasUnsavedVehicleDraft(){
@@ -222,9 +222,19 @@
     }
     async function saveSelectedTheme(){
       if(!draft.themeId||!themeById(draft.themeId)){setMsg('اختار تصميم العرض أولًا.','error');return;}
-      var old=screens[selectedScreen]||{},payload={themeId:draft.themeId,forceRefresh:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
-      try{await db.collection('showroom_screens').doc(selectedScreen).set(payload,{merge:true});screens[selectedScreen]=Object.assign({},old,payload);draftDirty=hasUnsavedVehicleDraft();toggleDraftNotice(draftDirty);refreshPreviewFrame();setMsg('تم حفظ تصميم '+themeById(draft.themeId).title+' على الشاشة '+selectedScreen+'.','ok');}
-      catch(e){setMsg('تعذر حفظ تصميم العرض: '+e.message,'error');}
+      var stamp=Date.now();
+      try{
+        displaySettings.activeThemeId=draft.themeId;
+        await db.collection('showroom_settings').doc('display').set({activeThemeId:draft.themeId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+        await Promise.all(CODES.map(function(code){
+          var old=screens[code]||{},payload={themeId:draft.themeId,forceRefresh:stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+          screens[code]=Object.assign({},old,payload);
+          return db.collection('showroom_screens').doc(code).set(payload,{merge:true});
+        }));
+        draftDirty=hasUnsavedVehicleDraft();
+        toggleDraftNotice(draftDirty);renderThemePicker();renderScreenTabs();refreshPreviewFrame();
+        setMsg('تم حفظ تصميم '+themeById(draft.themeId).title+' وتطبيقه على كل الشاشات.','ok');
+      }catch(e){setMsg('تعذر حفظ تصميم العرض: '+e.message,'error');}
     }
 
     async function loadStock(force){
@@ -236,7 +246,7 @@
     async function selectScreen(code){
       selectedScreen=String(code||'A1').toUpperCase();renderScreenTabs();
       $('selectedScreenTitle').textContent=selectedScreen;if($('previewScreenCode'))$('previewScreenCode').textContent=selectedScreen;var s=screens[selectedScreen]||{},active=!!(s.carId||s.carUrl);$('selectedScreenStatus').className='badge '+(active?'active':'empty');$('selectedScreenStatus').textContent=active?'مرتبطة':'فارغة';
-      draft={color:s.imageFilterColor||'all',colorLabel:s.imageFilterLabel||'',selectedImages:Array.isArray(s.selectedImages)?s.selectedImages.slice():[],themeId:s.themeId||(!active?'ramadan':'')};draftDirty=false;toggleDraftNotice(false);
+      draft={color:s.imageFilterColor||'all',colorLabel:s.imageFilterLabel||'',selectedImages:Array.isArray(s.selectedImages)?s.selectedImages.slice():[],themeId:displaySettings.activeThemeId||s.themeId||'ramadan'};draftDirty=false;toggleDraftNotice(false);
       selectedCar=s.carId?carById(s.carId):null;selectedCarData=null;inspectorTab='overview';renderThemePicker();renderSelectedVehicleCard();renderVehicleControls();renderInspector();refreshPreviewFrame();
       if(selectedCar)await loadSelectedCarData(selectedCar,false);
     }
