@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
-    // MZJ v45: purge browser-managed site caches on every page open without touching auth/localStorage.
+    // MZJ v50: purge browser-managed site caches on every page open without touching auth/localStorage.
     window.MZJ_PAGE_CACHE_BUSTER = String(Date.now());
     (function(){
       try{
@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script>
-    document.write('<link rel="stylesheet" href="/styles.css?mzjv45='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');
+    document.write('<link rel="stylesheet" href="/styles.css?mzjv50='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -35,7 +35,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    document.write('<script src="/firebase-config.js?mzjv45='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+    document.write('<script src="/firebase-config.js?mzjv50='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
   </script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
@@ -190,7 +190,7 @@
       var t=currentTheme();if(!t)return'';
       return '<div class="showroom-season"><span>'+esc(t.sub)+'</span><strong>'+esc(t.title)+'</strong><i></i></div>';
     }
-    function featurePageSize(){return window.innerHeight<=820?8:10;}
+    function featurePageSize(){return window.innerHeight<=900?6:8;}
     function featurePageCount(section){var items=featureData()[section]||[];return Math.max(1,Math.ceil(items.length/featurePageSize()));}
     function featurePagerHtml(total){if(total<=1)return'';return '<div class="showroom-feature-pager"><button type="button" class="showroom-feature-page-btn" data-step="-1" aria-label="الصفحة السابقة">‹</button><strong>'+(featurePage+1)+' / '+total+'</strong><button type="button" class="showroom-feature-page-btn" data-step="1" aria-label="الصفحة التالية">›</button></div>';}
 

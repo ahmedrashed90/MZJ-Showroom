@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071a2d"/><stop offset=".58" stop-color="#0b3153"/><stop offset="1" stop-color="#071827"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#f3d07d" stop-opacity=".62"/><stop offset="1" stop-color="#f3d07d" stop-opacity="0"/></radialGradient>
+    <pattern id="stars" width="120" height="120" patternUnits="userSpaceOnUse"><circle cx="18" cy="22" r="2" fill="#f3d07d" opacity=".5"/><circle cx="88" cy="70" r="1.5" fill="#fff6d4" opacity=".38"/></pattern>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+  <rect width="1200" height="1200" fill="url(#stars)"/>
+  <circle cx="215" cy="180" r="175" fill="url(#glow)"/>
+  <circle cx="220" cy="178" r="92" fill="#e6bd5e"/>
+  <circle cx="260" cy="145" r="92" fill="#0a2946"/>
+  <g stroke="#e6bd5e" fill="none" opacity=".5"><path d="M70 1000V830h90v170m55 0V760h95v240m95 0V875h80v125m110 0V810h95v190m100 0V735h90v265m105 0V850h80v150" stroke-width="6"/><path d="M80 1000h1040" stroke-width="10"/></g>
+  <g opacity=".5" fill="#e6bd5e"><rect x="760" y="145" width="8" height="210" rx="4"/><path d="M710 355h108l-12 44h-84z"/><path d="M730 399h68v110h-68z" fill-opacity=".16" stroke="#e6bd5e" stroke-width="6"/><path d="M742 509h44l-8 60h-28z"/></g>
+</svg>

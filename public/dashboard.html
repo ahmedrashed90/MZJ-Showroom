@@ -7,16 +7,11 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <script>
-    // MZJ v45: purge browser-managed site caches on every page open without touching auth/localStorage.
     window.MZJ_PAGE_CACHE_BUSTER = String(Date.now());
     (function(){
       try{
-        if(window.caches && caches.keys){
-          caches.keys().then(function(keys){ return Promise.all(keys.map(function(k){ return caches.delete(k); })); }).catch(function(){});
-        }
-        if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations){
-          navigator.serviceWorker.getRegistrations().then(function(regs){ regs.forEach(function(r){ try{r.unregister();}catch(e){} }); }).catch(function(){});
-        }
+        if(window.caches && caches.keys){caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));}).catch(function(){});}
+        if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations){navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){try{r.unregister();}catch(e){}});}).catch(function(){});}
       }catch(e){}
     })();
   </script>
@@ -24,11 +19,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script>
-    document.write('<link rel="stylesheet" href="/styles.css?mzjv45='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');
-  </script>
+  <script>document.write('<link rel="stylesheet" href="/styles.css?mzjv50='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');</script>
 </head>
-<body class="dashboard-v41-body">
+<body class="dashboard-control-body">
   <div id="login" class="login hidden">
     <div>
       <div class="login-logo">MZJ</div>
@@ -41,49 +34,68 @@
     </div>
   </div>
 
-  <div id="app" class="app hidden">
-    <aside class="side">
-      <div class="brand-block"><div class="brand">MZJ</div><div class="brand-sub">محمد بن ذعار العجمي<br>شاشات المعرض</div></div>
-      <nav class="nav"><a class="active">▣ إدارة الشاشات</a><span class="nav-sep"></span><a onclick="logout()">⇱ تسجيل الخروج</a></nav>
+  <div id="app" class="app dashboard-control-app hidden">
+    <aside class="side dashboard-side">
+      <div class="brand-block">
+        <div class="brand">MZJ</div>
+        <div class="brand-sub">شاشات المعرض<br><span>SHOWROOM CONTROL</span></div>
+      </div>
+      <nav class="nav">
+        <a class="active"><span>▣</span> إدارة الشاشات</a>
+        <a href="#themeSection"><span>◈</span> تصميم العرض</a>
+        <a href="#displaySettings"><span>⚙</span> إعدادات العرض</a>
+        <span class="nav-sep"></span>
+        <a onclick="logout()"><span>⇱</span> تسجيل الخروج</a>
+      </nav>
+      <div class="side-footer">MZJ CARS<br><small>MORE THAN A DRIVE</small></div>
     </aside>
 
-    <main class="main dashboard-v41-main">
-      <div class="topbar">
-        <div class="page-title"><div class="title-icon">▣</div><div><h1>إدارة شاشات المعرض</h1><div class="subtitle">اختر شاشة، اربط السيارة، راجع كل البيانات ثم طبّقها على الشاشة.</div></div></div>
-        <div class="user"><div class="user-name" id="userName">MZJ Admin</div><div class="avatar" id="avatar">M</div></div>
-      </div>
-
-      <section class="cards dashboard-v41-metrics">
-        <div class="card metric"><div><b>السيارات المتاحة للنظام</b><div class="num" id="stockCount">0</div><small>سيارة</small></div><div class="icon">🚘</div></div>
-        <div class="card metric"><div><b>الشاشات المرتبطة</b><div class="num green" id="activeCount">0</div><small>شاشة</small></div><div class="icon">▣</div></div>
-        <div class="card metric"><div><b>آخر تحديث</b><div id="lastSync" class="metric-time">--</div><small>من مصدر السيارات</small></div><div class="icon">◷</div></div>
-      </section>
-
-      <section class="panel display-settings dashboard-v41-settings">
-        <div class="settings-head"><div><h3>إعدادات شكل العرض</h3><div class="subtitle">الشعار وحجم الخط إعدادات مشتركة وتظهر Live على كل صفحات العرض.</div></div><button class="btn primary" onclick="saveDisplaySettings()">حفظ إعدادات العرض</button></div>
-        <div class="settings-grid settings-grid-4">
-          <div class="setting-box"><label>حجم خط المواصفات</label><div class="font-control"><button class="btn small" onclick="changeFont(-1)">−</button><strong id="fontSizeView">18px</strong><button class="btn small" onclick="changeFont(1)">+</button></div></div>
-          <div class="setting-box"><label>الشعار</label><input id="logoFile" class="hidden" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="chooseLogoFile(this)"><div class="logo-picker-row"><button class="btn small primary" onclick="document.getElementById('logoFile').click()">اختيار شعار</button><button class="btn small" onclick="removeLogo()">إزالة</button></div><div id="logoPreviewBox" class="logo-preview empty"><span>لا يوجد شعار</span></div></div>
-          <div class="setting-box"><label>حجم الشعار</label><div class="font-control"><button class="btn small" onclick="changeLogoSize(-10)">−</button><strong id="logoSizeView">120px</strong><button class="btn small" onclick="changeLogoSize(10)">+</button></div></div>
-          <div class="setting-box"><label>مكان الشعار</label><select class="filter full-control" id="logoPosition"><option value="right">يمين</option><option value="left">يسار</option></select></div>
+    <main class="main dashboard-control-main">
+      <header class="dashboard-header">
+        <div class="page-title dashboard-title">
+          <div class="title-icon">▣</div>
+          <div><span class="eyebrow">MZJ SHOWROOM</span><h1>لوحة تحكم شاشات العرض</h1><div class="subtitle">اختر الشاشة والسيارة والتصميم وشاهد النتيجة قبل الحفظ.</div></div>
         </div>
-      </section>
+        <div class="user dashboard-user"><div><small>مدير النظام</small><div class="user-name" id="userName">MZJ Admin</div></div><div class="avatar" id="avatar">M</div></div>
+      </header>
 
-      <section class="panel screen-selector-panel">
-        <div class="screen-selector-head"><div><h3>اختر الشاشة</h3><div class="subtitle">كل شاشة لها سيارة وإعدادات صور مستقلة تمامًا.</div></div><div class="screen-selector-actions"><button class="btn small" onclick="openSelectedScreen()">فتح صفحة العرض ↗</button><button class="btn small" onclick="refreshSelectedScreen()">تحديث الشاشة</button></div></div>
-        <div id="screenTabs" class="screen-tabs"></div>
-      </section>
-
-      <section class="panel theme-selector-panel">
-        <div class="theme-selector-head"><div><span class="eyebrow">الشاشة <b id="themeScreenCode">A1</b></span><h3>تصميم العرض</h3></div><button class="btn primary" onclick="saveSelectedTheme()">حفظ التصميم للشاشة</button></div>
-        <div id="themePicker" class="theme-picker"></div>
+      <section class="dashboard-overview">
+        <div class="overview-card"><span class="overview-icon">▣</span><div><small>الشاشات المرتبطة</small><strong id="activeCount">0</strong><em>شاشة</em></div></div>
+        <div class="overview-card"><span class="overview-icon">🚘</span><div><small>السيارات المتاحة</small><strong id="stockCount">0</strong><em>سيارة</em></div></div>
+        <div class="overview-card wide"><span class="overview-icon">◷</span><div><small>آخر تحديث</small><strong id="lastSync">--</strong><em>من مصدر السيارات</em></div></div>
+        <div class="overview-actions"><button class="btn" onclick="loadStock(true)">↻ تحديث السيارات</button><button class="btn primary" onclick="openSelectedScreen()">فتح الشاشة ↗</button></div>
       </section>
 
       <div id="statusMsg" class="status-msg hidden"></div>
 
-      <section class="dashboard-v41-workspace">
-        <div class="panel vehicle-control-panel">
-          <div class="control-panel-head"><div><span class="eyebrow">الشاشة المحددة</span><h2 id="selectedScreenTitle">A1</h2></div><span id="selectedScreenStatus" class="badge empty">فارغة</span></div>
+      <section class="showroom-control-grid">
+        <aside class="panel screen-rail-panel">
+          <div class="rail-head"><div><span class="eyebrow">الشاشات</span><h3>اختر الشاشة</h3></div><button class="rail-refresh" onclick="refreshSelectedScreen()" title="تحديث الشاشة">↻</button></div>
+          <div id="screenTabs" class="screen-tabs screen-tabs-vertical"></div>
+          <button class="btn full" onclick="openSelectedScreen()">فتح صفحة العرض ↗</button>
+        </aside>
+
+        <section class="dashboard-center-column">
+          <div class="panel live-preview-panel premium-preview-panel">
+            <div class="preview-head">
+              <div><span class="eyebrow">LIVE PREVIEW</span><h3>المعاينة المباشرة</h3><div class="subtitle">نفس التصميم والبيانات التي ستظهر على التابلت.</div></div>
+              <div class="preview-screen-pill"><i></i><span>الشاشة</span><b id="previewScreenCode">A1</b></div>
+            </div>
+            <div class="preview-device-shell">
+              <div class="preview-device-camera"></div>
+              <div class="preview-frame-wrap"><iframe id="screenPreview" title="معاينة شاشة المعرض"></iframe><div id="previewDraftNotice" class="preview-draft-notice hidden">يوجد اختيار غير محفوظ — احفظ التغييرات لمشاهدتها هنا.</div></div>
+            </div>
+            <div class="preview-footer"><span>مقاس العرض المستهدف: تابلت 14–15 بوصة</span><div class="preview-actions"><button class="btn small" onclick="refreshPreviewFrame()">↻ تحديث المعاينة</button><button class="btn small" onclick="openSelectedScreen()">ملء الشاشة ↗</button></div></div>
+          </div>
+
+          <div id="themeSection" class="panel theme-selector-panel premium-theme-panel">
+            <div class="theme-selector-head"><div><span class="eyebrow">تصميم الشاشة <b id="themeScreenCode">A1</b></span><h3>اختر هوية المناسبة</h3><div class="subtitle">كل شاشة تحفظ تصميمها بشكل مستقل.</div></div><button class="btn primary" onclick="saveSelectedTheme()">حفظ التصميم</button></div>
+            <div id="themePicker" class="theme-picker theme-picker-rich"></div>
+          </div>
+        </section>
+
+        <aside class="panel vehicle-control-panel premium-control-panel">
+          <div class="control-panel-head"><div><span class="eyebrow">التحكم بالشاشة</span><h2 id="selectedScreenTitle">A1</h2></div><span id="selectedScreenStatus" class="badge empty">فارغة</span></div>
 
           <div class="control-block">
             <label class="control-label">اختيار السيارة</label>
@@ -98,20 +110,26 @@
             <div class="control-block image-picker-block"><div class="control-label-row"><label class="control-label">الصور المختارة يدويًا</label><button class="link-btn" onclick="clearImageSelection()">استخدام الصور تلقائيًا</button></div><div id="imagePicker" class="dashboard-image-picker"></div></div>
             <div class="save-screen-actions"><button class="btn primary" onclick="saveSelectedScreen()">حفظ وتطبيق على الشاشة</button><button class="btn" onclick="reloadSelectedVehicle()">إعادة قراءة السيارة</button></div>
           </div>
-        </div>
+        </aside>
+      </section>
 
-        <div class="dashboard-v41-right">
-          <div class="panel live-preview-panel">
-            <div class="preview-head"><div><h3>معاينة الشاشة الفعلية</h3><div class="subtitle">المعاينة تقرأ نفس Screen ID ونفس السيارة المحفوظة.</div></div><div class="preview-actions"><button class="btn small" onclick="refreshPreviewFrame()">↻</button><button class="btn icon-btn" onclick="openSelectedScreen()">↗</button></div></div>
-            <div class="preview-frame-wrap"><iframe id="screenPreview" title="معاينة شاشة المعرض"></iframe><div id="previewDraftNotice" class="preview-draft-notice hidden">يوجد اختيار غير محفوظ — اضغط «حفظ وتطبيق على الشاشة» لرؤيته هنا.</div></div>
+      <details id="displaySettings" class="panel display-settings dashboard-settings-collapsible">
+        <summary><div><span class="eyebrow">إعدادات عامة</span><h3>الشعار وحجم الخط</h3><div class="subtitle">إعدادات مشتركة لكل الشاشات.</div></div><span class="settings-chevron">⌄</span></summary>
+        <div class="settings-content">
+          <div class="settings-grid settings-grid-4">
+            <div class="setting-box"><label>حجم خط المواصفات</label><div class="font-control"><button class="btn small" onclick="changeFont(-1)">−</button><strong id="fontSizeView">18px</strong><button class="btn small" onclick="changeFont(1)">+</button></div></div>
+            <div class="setting-box"><label>الشعار</label><input id="logoFile" class="hidden" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="chooseLogoFile(this)"><div class="logo-picker-row"><button class="btn small primary" onclick="document.getElementById('logoFile').click()">اختيار شعار</button><button class="btn small" onclick="removeLogo()">إزالة</button></div><div id="logoPreviewBox" class="logo-preview empty"><span>لا يوجد شعار</span></div></div>
+            <div class="setting-box"><label>حجم الشعار</label><div class="font-control"><button class="btn small" onclick="changeLogoSize(-10)">−</button><strong id="logoSizeView">120px</strong><button class="btn small" onclick="changeLogoSize(10)">+</button></div></div>
+            <div class="setting-box"><label>مكان الشعار</label><select class="filter full-control" id="logoPosition"><option value="right">يمين</option><option value="left">يسار</option></select></div>
           </div>
-
-          <div class="panel vehicle-inspector-panel">
-            <div class="inspector-head"><div><h3>كل بيانات السيارة المختارة</h3><div id="inspectorSub" class="subtitle">اختار سيارة لعرض بياناتها كاملة.</div></div></div>
-            <div id="inspectorTabs" class="inspector-tabs"></div>
-            <div id="inspectorBody" class="inspector-body"><div class="center-muted">لا توجد سيارة محددة.</div></div>
-          </div>
+          <div class="settings-save-row"><button class="btn primary" onclick="saveDisplaySettings()">حفظ إعدادات العرض</button></div>
         </div>
+      </details>
+
+      <section class="panel vehicle-inspector-panel premium-inspector-panel">
+        <div class="inspector-head"><div><span class="eyebrow">بيانات السيارة</span><h3>كل بيانات السيارة المختارة</h3><div id="inspectorSub" class="subtitle">اختار سيارة لعرض بياناتها كاملة.</div></div></div>
+        <div id="inspectorTabs" class="inspector-tabs"></div>
+        <div id="inspectorBody" class="inspector-body"><div class="center-muted">لا توجد سيارة محددة.</div></div>
       </section>
     </main>
   </div>
@@ -120,7 +138,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    document.write('<script src="/firebase-config.js?mzjv45='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+    document.write('<script src="/firebase-config.js?mzjv50='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
   </script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
@@ -193,7 +211,7 @@
     function themeById(id){return THEMES.find(function(t){return t.id===id;})||null;}
     function renderThemePicker(){
       var el=$('themePicker');if(!el)return;$('themeScreenCode').textContent=selectedScreen;
-      el.innerHTML=THEMES.map(function(t){var active=draft.themeId===t.id;return '<button type="button" class="theme-card theme-preview-'+t.id+' '+(active?'selected':'')+'" onclick="selectTheme(\''+t.id+'\')"><span class="theme-art"><i></i><b>'+esc(t.subtitle)+'</b></span><strong>'+esc(t.title)+'</strong><em>'+(active?'✓':'')+'</em></button>';}).join('');
+      el.innerHTML=THEMES.map(function(t){var active=draft.themeId===t.id;return '<button type="button" class="theme-card theme-preview-'+t.id+' '+(active?'selected':'')+'" onclick="selectTheme(\''+t.id+'\')"><span class="theme-art"><i></i><span class="theme-mini-mark">MZJ</span><b>'+esc(t.subtitle)+'</b><small>'+esc(t.title)+'</small></span><strong>'+esc(t.title)+'</strong><em>'+(active?'✓':'')+'</em></button>';}).join('');
     }
     function selectTheme(id){if(!themeById(id))return;draft.themeId=id;draftDirty=true;renderThemePicker();toggleDraftNotice(true);}
     function hasUnsavedVehicleDraft(){
@@ -217,7 +235,7 @@
 
     async function selectScreen(code){
       selectedScreen=String(code||'A1').toUpperCase();renderScreenTabs();
-      $('selectedScreenTitle').textContent=selectedScreen;var s=screens[selectedScreen]||{},active=!!(s.carId||s.carUrl);$('selectedScreenStatus').className='badge '+(active?'active':'empty');$('selectedScreenStatus').textContent=active?'مرتبطة':'فارغة';
+      $('selectedScreenTitle').textContent=selectedScreen;if($('previewScreenCode'))$('previewScreenCode').textContent=selectedScreen;var s=screens[selectedScreen]||{},active=!!(s.carId||s.carUrl);$('selectedScreenStatus').className='badge '+(active?'active':'empty');$('selectedScreenStatus').textContent=active?'مرتبطة':'فارغة';
       draft={color:s.imageFilterColor||'all',colorLabel:s.imageFilterLabel||'',selectedImages:Array.isArray(s.selectedImages)?s.selectedImages.slice():[],themeId:s.themeId||(!active?'ramadan':'')};draftDirty=false;toggleDraftNotice(false);
       selectedCar=s.carId?carById(s.carId):null;selectedCarData=null;inspectorTab='overview';renderThemePicker();renderSelectedVehicleCard();renderVehicleControls();renderInspector();refreshPreviewFrame();
       if(selectedCar)await loadSelectedCarData(selectedCar,false);
