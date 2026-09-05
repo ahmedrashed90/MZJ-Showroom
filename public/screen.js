@@ -116,18 +116,19 @@ function featureTitle(key){return key==='interior'?'المواصفات الدا�
 function featurePageSize(){return 14;}
 function featurePageCount(section){var items=featureData()[section]||[];return Math.max(1,Math.ceil(items.length/featurePageSize()));}
 
-/* ---------- fresh V60 composition ---------- */
+/* ---------- V61 clean composition ---------- */
 function identityHtml(){
   var logo=String(themeIdentity.logoDataUrl||'');
   var size=Math.max(60,Math.min(260,parseInt(themeIdentity.logoSize||120,10)));
   var caption=cleanText(themeIdentity.caption||'');
   var captionSize=Math.max(10,Math.min(32,parseInt(themeIdentity.captionFontSize||16,10)));
   var number=activeThemeId()==='national'?cleanText(themeIdentity.nationalDayNumber||'96'):'';
-  return'<div class="occasion-rail"><div class="theme-identity">'+
+  if(!logo&&!caption&&!number)return'';
+  return'<div class="theme-identity-overlay">'+
     (logo?'<img src="'+esc(logo)+'" alt="" style="width:'+size+'px">':'')+
     (caption?'<div class="identity-caption" style="font-size:'+captionSize+'px">'+esc(caption)+'</div>':'')+
     (number?'<div class="identity-number">'+esc(number)+'</div>':'')+
-  '</div></div>';
+  '</div>';
 }
 function mzjLogoHtml(){if(!displaySettings.logoDataUrl)return'';var pos=displaySettings.logoPosition==='left'?'logo-left':'logo-right';return'<div class="brand-row '+pos+'"><img class="mzj-logo" src="'+esc(displaySettings.logoDataUrl)+'" alt="MZJ"></div>';}
 function colorChip(row,type){var active=type==='external'&&selectedColorName()&&normArabic(row.name)===normArabic(selectedColorName());return'<span class="color-chip '+(active?'active':'')+'"><i style="background:'+esc(row.background||'#dedede')+'"></i><b>'+esc(row.name)+'</b></span>';}
@@ -153,8 +154,8 @@ function render(){
   var root=document.getElementById('root');
   root.className='showroom-shell theme-'+theme;
   root.innerHTML=
-    '<section class="visual-zone">'+identityHtml()+'<div class="gallery-outline" aria-hidden="true"></div>'+
-      '<div class="media-stage"><div class="media-backdrop"><img id="showroomCarBackdrop" alt="" aria-hidden="true"></div><div class="media-main"><img id="showroomCarImage" loading="eager" decoding="async" fetchpriority="high" alt="'+esc(title||'صورة السيارة')+'"></div><div class="media-glass"></div></div>'+
+    '<section class="visual-zone"><div class="gallery-outline" aria-hidden="true"></div>'+
+      '<div class="media-stage"><div class="media-backdrop"><img id="showroomCarBackdrop" alt="" aria-hidden="true"></div><div class="media-main"><img id="showroomCarImage" loading="eager" decoding="async" fetchpriority="high" alt="'+esc(title||'صورة السيارة')+'"></div><div class="media-glass"></div>'+identityHtml()+'</div>'+
       '<button id="imgPrev" class="gallery-arrow prev" type="button" aria-label="الصورة السابقة">‹</button><button id="imgNext" class="gallery-arrow next" type="button" aria-label="الصورة التالية">›</button>'+
       '<div id="showroomDots" class="image-dots"></div><div class="visual-signature">MZJ SHOWROOM</div>'+
     '</section>'+

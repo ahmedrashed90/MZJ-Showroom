@@ -1,4 +1,4 @@
-# MZJ Showroom Seasonal Design V60 CLEAN
+# MZJ Showroom Seasonal Design V61 CLEAN
 
 نسخة Clean جديدة لطبقة عرض شاشات المعرض مع الحفاظ على منطق البيانات والربط.
 
@@ -47,3 +47,11 @@
 - `showroom_settings`
 - `showroom_theme_settings`
 - `showroom_screen_logs`
+
+
+## V61 image-frame change
+- Removed the occasion side rail from the gallery completely.
+- The vehicle image frame now uses almost the entire left display area.
+- Occasion logo, caption, caption font size and National Day number are rendered as an overlay inside the image frame.
+- Vehicle images remain `object-fit: contain` with the existing adaptive blurred backdrop.
+- No changes were made to vehicle loading, Firestore screen assignment, QR, colors, specifications, feature pagination or dashboard theme settings.
