@@ -18,7 +18,7 @@
 تقليل/إلغاء اعتماد شاشات الـ Kiosk على نسخة قديمة من HTML/CSS أو صور السيارة، بدون زيارة الشاشة لمسح الكاش يدويًا.
 
 
-## V54 National Day settings
+## V55 National Day settings
 - National Day defaults to 96.
 - Default logo: `public/assets/themes/national-day-default.png`.
 - Dashboard can change the National Day number and logo without editing source code.
