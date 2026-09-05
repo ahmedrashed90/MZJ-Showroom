@@ -27,9 +27,9 @@ var themeIdentityUnsub=null;
 var imageIndex=0,techIndex=0,featureSection='interior',featurePage=0;
 var imageTimer=null,featureTimer=null,badLoaded={},lastVehicleKey='',lastForceRefresh=0;
 
-function empty(msg){stopImageLoop();stopFeatureLoop();var root=document.getElementById('root');root.className='empty-state';root.innerHTML='<div><h1>الشاشة '+esc(screenId)+'</h1><p>'+esc(msg||'لا توجد سيارة مرتبطة بهذه الشاشة حاليًا')+'</p></div>';}
 function stopImageLoop(){if(imageTimer)clearInterval(imageTimer);imageTimer=null;}
 function stopFeatureLoop(){if(featureTimer)clearInterval(featureTimer);featureTimer=null;}
+function empty(msg){stopImageLoop();stopFeatureLoop();var root=document.getElementById('root');root.className='empty-state';root.innerHTML='<div><h1>الشاشة '+esc(screenId)+'</h1><p>'+esc(msg||'لا توجد سيارة مرتبطة بهذه الشاشة حاليًا')+'</p></div>';}
 function activeThemeId(){var id=String(displaySettings.activeThemeId||screenOptions.themeId||'ramadan');return THEME_DEFAULTS[id]?id:'ramadan';}
 function themeDefaults(id){return Object.assign({},THEME_DEFAULTS[id]||THEME_DEFAULTS.ramadan);}
 
@@ -116,30 +116,33 @@ function featureTitle(key){return key==='interior'?'المواصفات الدا�
 function featurePageSize(){return 14;}
 function featurePageCount(section){var items=featureData()[section]||[];return Math.max(1,Math.ceil(items.length/featurePageSize()));}
 
-/* ---------- visual composition ---------- */
-function frameHtml(){return'<div class="visual-frame" aria-hidden="true"><span class="frame-line top"></span><span class="frame-line bottom"></span><span class="frame-line left"></span><span class="frame-line right"></span><span class="frame-corner tl"></span><span class="frame-corner tr"></span><span class="frame-corner bl"></span><span class="frame-corner br"></span><span class="frame-orbit"></span><span class="frame-orbit second"></span></div>';}
+/* ---------- fresh V60 composition ---------- */
 function identityHtml(){
   var logo=String(themeIdentity.logoDataUrl||'');
   var size=Math.max(60,Math.min(260,parseInt(themeIdentity.logoSize||120,10)));
   var caption=cleanText(themeIdentity.caption||'');
   var captionSize=Math.max(10,Math.min(32,parseInt(themeIdentity.captionFontSize||16,10)));
   var number=activeThemeId()==='national'?cleanText(themeIdentity.nationalDayNumber||'96'):'';
-  return'<div class="theme-identity">'+(logo?'<img src="'+esc(logo)+'" alt="" style="width:'+size+'px">':'')+(caption?'<div class="identity-caption" style="font-size:'+captionSize+'px">'+esc(caption)+'</div>':'')+(number?'<div class="identity-number">'+esc(number)+'</div>':'')+'</div>';
+  return'<div class="occasion-rail"><div class="theme-identity">'+
+    (logo?'<img src="'+esc(logo)+'" alt="" style="width:'+size+'px">':'')+
+    (caption?'<div class="identity-caption" style="font-size:'+captionSize+'px">'+esc(caption)+'</div>':'')+
+    (number?'<div class="identity-number">'+esc(number)+'</div>':'')+
+  '</div></div>';
 }
 function mzjLogoHtml(){if(!displaySettings.logoDataUrl)return'';var pos=displaySettings.logoPosition==='left'?'logo-left':'logo-right';return'<div class="brand-row '+pos+'"><img class="mzj-logo" src="'+esc(displaySettings.logoDataUrl)+'" alt="MZJ"></div>';}
 function colorChip(row,type){var active=type==='external'&&selectedColorName()&&normArabic(row.name)===normArabic(selectedColorName());return'<span class="color-chip '+(active?'active':'')+'"><i style="background:'+esc(row.background||'#dedede')+'"></i><b>'+esc(row.name)+'</b></span>';}
-function colorsHtml(){var rows=colorRows(),lines=[];if(rows.external.length)lines.push('<div class="color-line"><span>الخارجي</span><div class="color-list">'+rows.external.map(function(r){return colorChip(r,'external');}).join('')+'</div></div>');if(rows.internal.length)lines.push('<div class="color-line"><span>الداخلي</span><div class="color-list">'+rows.internal.map(function(r){return colorChip(r,'internal');}).join('')+'</div></div>');return lines.length?'<div class="colors-flow"><strong>الألوان المتاحة</strong><div class="color-groups">'+lines.join('')+'</div></div>':'';}
-function headingHtml(text){return'<div class="design-heading"><strong>'+esc(text)+'</strong></div>';}
-function mainSpecsHtml(){var specs=mainSpecs();if(!specs.length)return'';return'<section class="spec-composition">'+headingHtml('المواصفات الرئيسية')+'<div class="spec-constellation">'+specs.map(function(x){return'<div class="spec-node">'+specIcon(x[2])+'<small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>';}).join('')+'</div></section>';}
-function techHtml(){var groups=technicalGroups();if(!groups.length)return'';if(techIndex>=groups.length)techIndex=0;var g=groups[techIndex];return'<section class="tech-composition">'+headingHtml('المواصفات الفنية')+'<div class="tech-rail">'+groups.map(function(x,i){return'<button type="button" class="tech-tab '+(i===techIndex?'active':'')+'" data-tech="'+i+'">'+esc(x.title)+'</button>';}).join('')+'</div><div class="tech-values">'+g.items.map(function(x){return'<div class="tech-node">'+specIcon(x[2])+'<small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>';}).join('')+'</div></section>';}
-function pagerHtml(total){if(total<=1)return'';return'<div class="feature-pager"><button type="button" class="feature-page-btn" data-step="-1">‹</button><strong>'+(featurePage+1)+' / '+total+'</strong><button type="button" class="feature-page-btn" data-step="1">›</button></div>';}
+function colorsHtml(){var rows=colorRows(),parts=[];if(rows.external.length)parts.push('<div class="color-line"><span>الخارجي</span><div class="color-list">'+rows.external.map(function(r){return colorChip(r,'external');}).join('')+'</div></div>');if(rows.internal.length)parts.push('<div class="color-line"><span>الداخلي</span><div class="color-list">'+rows.internal.map(function(r){return colorChip(r,'internal');}).join('')+'</div></div>');return parts.length?'<div class="colors-ribbon"><strong>الألوان المتاحة</strong><div class="color-groups">'+parts.join('')+'</div></div>':'';}
+function sectionTitle(text){return'<div class="section-title"><strong>'+esc(text)+'</strong></div>';}
+function mainSpecsHtml(){var specs=mainSpecs();if(!specs.length)return'';var count=Math.max(1,Math.min(specs.length,6));return'<section class="primary-specs">'+sectionTitle('المواصفات الرئيسية')+'<div class="spec-runway" style="--spec-count:'+count+'">'+specs.map(function(x){return'<div class="spec-node">'+specIcon(x[2])+'<small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>';}).join('')+'</div></section>';}
+function techHtml(){var groups=technicalGroups();if(!groups.length)return'';if(techIndex>=groups.length)techIndex=0;var g=groups[techIndex],count=Math.max(1,Math.min(g.items.length,4));return'<section class="technical-flow"><div class="tech-topline">'+sectionTitle('المواصفات الفنية')+'<div class="tech-tabs">'+groups.map(function(x,i){return'<button type="button" class="tech-tab '+(i===techIndex?'active':'')+'" data-tech="'+i+'">'+esc(x.title)+'</button>';}).join('')+'</div></div><div class="tech-values" style="--tech-count:'+count+'">'+g.items.map(function(x){return'<div class="tech-node">'+specIcon(x[2])+'<small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>';}).join('')+'</div></section>';}
+function pagerHtml(total){if(total<=1)return'<div class="feature-pager"><strong>1 / 1</strong></div>';return'<div class="feature-pager"><button type="button" class="feature-page-btn" data-step="-1">‹</button><strong>'+(featurePage+1)+' / '+total+'</strong><button type="button" class="feature-page-btn" data-step="1">›</button></div>';}
 function featuresHtml(){
   var groups=featureData(),valid=validFeatureSections();if(!valid.length)return'';
   if(valid.indexOf(featureSection)<0){featureSection=valid[0];featurePage=0;}
   var items=groups[featureSection]||[],pages=Math.max(1,Math.ceil(items.length/14));if(featurePage>=pages)featurePage=0;if(featurePage<0)featurePage=pages-1;
   var visible=items.slice(featurePage*14,(featurePage+1)*14),right=visible.slice(0,7),left=visible.slice(7,14);
   function rows(arr){return arr.map(function(x){return'<div class="feature-row"><i>✓</i><span>'+esc(x)+'</span></div>';}).join('');}
-  return'<section class="features-field"><div class="feature-tabs">'+valid.map(function(k){return'<button type="button" class="feature-tab '+(k===featureSection?'active':'')+'" data-section="'+k+'">'+esc(featureTitle(k))+'</button>';}).join('')+'</div><div class="feature-columns"><div class="feature-column">'+rows(right)+'</div><div class="feature-column">'+rows(left)+'</div></div>'+pagerHtml(pages)+'</section>';
+  return'<section class="features-gallery"><div class="feature-head"><strong class="feature-head-title">المواصفات والمميزات</strong><div class="feature-tabs">'+valid.map(function(k){return'<button type="button" class="feature-tab '+(k===featureSection?'active':'')+'" data-section="'+k+'">'+esc(featureTitle(k))+'</button>';}).join('')+'</div></div><div class="feature-columns"><div class="feature-column">'+rows(right)+'</div><div class="feature-column">'+rows(left)+'</div></div>'+pagerHtml(pages)+'</section>';
 }
 function bottomHtml(){return'<footer class="bottom-composition"><div class="qr-side"><div id="showroomQr" class="qr-box"></div><div class="qr-copy"><strong>تفاصيل السيارة على جوالك</strong><span>امسح الرمز لعرض التفاصيل الكاملة</span></div></div><div class="tagline">رحلة أجمل .. مع MZJ</div></footer>';}
 
@@ -150,26 +153,22 @@ function render(){
   var root=document.getElementById('root');
   root.className='showroom-shell theme-'+theme;
   root.innerHTML=
-    '<section class="visual-zone">'+frameHtml()+identityHtml()+
-      '<div class="media-stage">'+
-        '<div class="media-blur"><img id="showroomCarBackdrop" alt="" aria-hidden="true"></div>'+
-        '<div class="media-main"><img id="showroomCarImage" loading="eager" decoding="async" fetchpriority="high" alt="'+esc(title||'صورة السيارة')+'"></div>'+
-        '<div class="media-glow"></div>'+
-      '</div>'+
-      '<div class="image-controls"><button id="imgPrev" class="prev" type="button" aria-label="الصورة السابقة">‹</button><button id="imgNext" class="next" type="button" aria-label="الصورة التالية">›</button></div>'+
-      '<div id="showroomDots" class="image-dots"></div>'+
+    '<section class="visual-zone">'+identityHtml()+'<div class="gallery-outline" aria-hidden="true"></div>'+
+      '<div class="media-stage"><div class="media-backdrop"><img id="showroomCarBackdrop" alt="" aria-hidden="true"></div><div class="media-main"><img id="showroomCarImage" loading="eager" decoding="async" fetchpriority="high" alt="'+esc(title||'صورة السيارة')+'"></div><div class="media-glass"></div></div>'+
+      '<button id="imgPrev" class="gallery-arrow prev" type="button" aria-label="الصورة السابقة">‹</button><button id="imgNext" class="gallery-arrow next" type="button" aria-label="الصورة التالية">›</button>'+
+      '<div id="showroomDots" class="image-dots"></div><div class="visual-signature">MZJ SHOWROOM</div>'+
     '</section>'+
-    '<aside class="info-zone"><div class="info-canvas">'+
-      '<header class="header-composition"><div class="title-stack">'+mzjLogoHtml()+'<h1 class="vehicle-title">'+esc(title)+'</h1></div>'+
-      (price?'<div class="price-mark"><strong>'+esc(price)+' <span>ر.س</span></strong><small>السعر شامل ضريبة القيمة المضافة</small></div>':'')+'</header>'+
+    '<aside class="info-zone"><div class="info-ornament" aria-hidden="true"></div><div class="info-canvas">'+
+      '<header class="vehicle-hero"><div class="vehicle-copy">'+mzjLogoHtml()+'<h1 class="vehicle-title">'+esc(title)+'</h1></div>'+
+      (price?'<div class="price-emblem"><strong>'+esc(price)+' <span>ر.س</span></strong><small>السعر شامل ضريبة القيمة المضافة</small></div>':'')+'</header>'+
       colorsHtml()+mainSpecsHtml()+'<div id="techSlot">'+techHtml()+'</div><div id="featureSlot">'+featuresHtml()+'</div>'+bottomHtml()+
     '</div></aside>';
   applyDisplaySettings();bindRendered();updateImageOnly();renderQr();startImageLoop();startFeatureLoop();
 }
 
 /* ---------- runtime interaction ---------- */
-function renderQr(){var el=document.getElementById('showroomQr'),url=screenOptions.carUrl||(data&&data.carUrl)||'';if(!el||!url)return;el.innerHTML='';if(window.QRCode){try{new QRCode(el,{text:url,width:70,height:70,colorDark:'#201915',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}catch(e){}}}
-function renderDots(){var el=document.getElementById('showroomDots'),arr=images();if(!el)return;if(arr.length<2){el.innerHTML='';el.classList.add('hidden');return;}el.classList.remove('hidden');var current=imageIndex%arr.length,max=Math.min(arr.length,14);el.innerHTML=Array.from({length:max}).map(function(_,i){return'<span class="image-dot '+(i===Math.min(current,max-1)?'active':'')+'"></span>';}).join('');}
+function renderQr(){var el=document.getElementById('showroomQr'),url=screenOptions.carUrl||(data&&data.carUrl)||'';if(!el||!url)return;el.innerHTML='';if(window.QRCode){try{new QRCode(el,{text:url,width:76,height:76,colorDark:'#201915',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}catch(e){}}}
+function renderDots(){var el=document.getElementById('showroomDots'),arr=images();if(!el)return;if(arr.length<2){el.innerHTML='';el.classList.add('hidden');return;}el.classList.remove('hidden');var max=Math.min(arr.length,14),active=(imageIndex%max+max)%max;el.innerHTML=Array.from({length:max}).map(function(_,i){return'<span class="image-dot '+(i===active?'active':'')+'"></span>';}).join('');}
 function setImageSource(img,url){if(!img)return;if(!url){img.removeAttribute('src');img.classList.add('hidden');return;}img.src=url;img.classList.remove('hidden');}
 function updateImageOnly(){
   var img=document.getElementById('showroomCarImage'),backdrop=document.getElementById('showroomCarBackdrop'),src=currentImage();
