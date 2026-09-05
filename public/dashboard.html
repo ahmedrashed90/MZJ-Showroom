@@ -74,6 +74,11 @@
         <div id="screenTabs" class="screen-tabs"></div>
       </section>
 
+      <section class="panel theme-selector-panel">
+        <div class="theme-selector-head"><div><span class="eyebrow">الشاشة <b id="themeScreenCode">A1</b></span><h3>تصميم العرض</h3></div><button class="btn primary" onclick="saveSelectedTheme()">حفظ التصميم للشاشة</button></div>
+        <div id="themePicker" class="theme-picker"></div>
+      </section>
+
       <div id="statusMsg" class="status-msg hidden"></div>
 
       <section class="dashboard-v41-workspace">
@@ -122,7 +127,14 @@
     var auth=firebase.auth(),db=firebase.firestore();
     var CODES=['A1','A2','A3','A4','A5','A6','A7','A8','A9','A10'];
     var screens={},stockItems=[],selectedScreen='A1',selectedCar=null,selectedCarData=null,inspectorTab='overview';
-    var draft={color:'all',colorLabel:'',selectedImages:[]},draftDirty=false;
+    var THEMES=[
+      {id:'ramadan',title:'رمضان',subtitle:'رمضان كريم'},
+      {id:'national',title:'اليوم الوطني',subtitle:'اليوم الوطني السعودي'},
+      {id:'founding',title:'يوم التأسيس',subtitle:'يوم بدينا'},
+      {id:'eid-fitr',title:'عيد الفطر',subtitle:'عيد فطر مبارك'},
+      {id:'eid-adha',title:'عيد الأضحى',subtitle:'عيد أضحى مبارك'}
+    ];
+    var draft={color:'all',colorLabel:'',selectedImages:[],themeId:''},draftDirty=false;
     var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right'};
 
     function $(id){return document.getElementById(id);}
@@ -178,6 +190,25 @@
       $('screenTabs').innerHTML=CODES.map(function(code){var s=screens[code]||{},active=!!(s.carId||s.carUrl),selected=code===selectedScreen;return '<button type="button" class="screen-tab '+(selected?'selected ':'')+(active?'active':'empty')+'" onclick="selectScreen(\''+code+'\')"><span class="screen-code">'+code+'</span><small>'+esc(active?(s.carName||'مرتبطة بسيارة'):'فارغة')+'</small><i></i></button>';}).join('');
     }
 
+    function themeById(id){return THEMES.find(function(t){return t.id===id;})||null;}
+    function renderThemePicker(){
+      var el=$('themePicker');if(!el)return;$('themeScreenCode').textContent=selectedScreen;
+      el.innerHTML=THEMES.map(function(t){var active=draft.themeId===t.id;return '<button type="button" class="theme-card theme-preview-'+t.id+' '+(active?'selected':'')+'" onclick="selectTheme(\''+t.id+'\')"><span class="theme-art"><i></i><b>'+esc(t.subtitle)+'</b></span><strong>'+esc(t.title)+'</strong><em>'+(active?'✓':'')+'</em></button>';}).join('');
+    }
+    function selectTheme(id){if(!themeById(id))return;draft.themeId=id;draftDirty=true;renderThemePicker();toggleDraftNotice(true);}
+    function hasUnsavedVehicleDraft(){
+      var s=screens[selectedScreen]||{},savedImages=Array.isArray(s.selectedImages)?s.selectedImages:[],draftImages=Array.isArray(draft.selectedImages)?draft.selectedImages:[];
+      var currentCarId=selectedCar?String(selectedCar.id||''):String(s.carId||'');
+      if(currentCarId!==String(s.carId||''))return true;if((draft.color||'all')!==(s.imageFilterColor||'all'))return true;if(draftImages.length!==savedImages.length)return true;
+      for(var i=0;i<draftImages.length;i++){if(draftImages[i]!==savedImages[i])return true;}return false;
+    }
+    async function saveSelectedTheme(){
+      if(!draft.themeId||!themeById(draft.themeId)){setMsg('اختار تصميم العرض أولًا.','error');return;}
+      var old=screens[selectedScreen]||{},payload={themeId:draft.themeId,forceRefresh:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+      try{await db.collection('showroom_screens').doc(selectedScreen).set(payload,{merge:true});screens[selectedScreen]=Object.assign({},old,payload);draftDirty=hasUnsavedVehicleDraft();toggleDraftNotice(draftDirty);refreshPreviewFrame();setMsg('تم حفظ تصميم '+themeById(draft.themeId).title+' على الشاشة '+selectedScreen+'.','ok');}
+      catch(e){setMsg('تعذر حفظ تصميم العرض: '+e.message,'error');}
+    }
+
     async function loadStock(force){
       setMsg('جاري تحميل السيارات...','info');
       try{var r=await fetch('/api/stock'+(force?'?force=1':'')+(force?'&':'?')+'_='+Date.now(),{cache:'no-store'}),d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||'تعذر تحميل السيارات');stockItems=(d.items||[]).slice().sort(function(a,b){return String(a.title||'').localeCompare(String(b.title||''),'ar');});$('lastSync').textContent=nowText();updateMetrics();renderVehicleResults();setMsg('تم تحميل السيارات بنجاح.','ok');}catch(e){setMsg('تعذر تحميل السيارات: '+e.message,'error');}
@@ -187,8 +218,8 @@
     async function selectScreen(code){
       selectedScreen=String(code||'A1').toUpperCase();renderScreenTabs();
       $('selectedScreenTitle').textContent=selectedScreen;var s=screens[selectedScreen]||{},active=!!(s.carId||s.carUrl);$('selectedScreenStatus').className='badge '+(active?'active':'empty');$('selectedScreenStatus').textContent=active?'مرتبطة':'فارغة';
-      draft={color:s.imageFilterColor||'all',colorLabel:s.imageFilterLabel||'',selectedImages:Array.isArray(s.selectedImages)?s.selectedImages.slice():[]};draftDirty=false;toggleDraftNotice(false);
-      selectedCar=s.carId?carById(s.carId):null;selectedCarData=null;inspectorTab='overview';renderSelectedVehicleCard();renderVehicleControls();renderInspector();refreshPreviewFrame();
+      draft={color:s.imageFilterColor||'all',colorLabel:s.imageFilterLabel||'',selectedImages:Array.isArray(s.selectedImages)?s.selectedImages.slice():[],themeId:s.themeId||(!active?'ramadan':'')};draftDirty=false;toggleDraftNotice(false);
+      selectedCar=s.carId?carById(s.carId):null;selectedCarData=null;inspectorTab='overview';renderThemePicker();renderSelectedVehicleCard();renderVehicleControls();renderInspector();refreshPreviewFrame();
       if(selectedCar)await loadSelectedCarData(selectedCar,false);
     }
 
@@ -200,7 +231,7 @@
 
     async function chooseVehicle(id){
       var car=carById(id);if(!car)return;
-      var changed=!selectedCar||String(selectedCar.id)!==String(car.id);selectedCar=car;if(changed){draft={color:'all',colorLabel:'',selectedImages:[]};draftDirty=true;toggleDraftNotice(true);}renderVehicleResults();renderSelectedVehicleCard();renderVehicleControls();await loadSelectedCarData(car,true);
+      var changed=!selectedCar||String(selectedCar.id)!==String(car.id);selectedCar=car;if(changed){draft={color:'all',colorLabel:'',selectedImages:[],themeId:draft.themeId};draftDirty=true;toggleDraftNotice(true);}renderVehicleResults();renderThemePicker();renderSelectedVehicleCard();renderVehicleControls();await loadSelectedCarData(car,true);
     }
 
     async function readCar(car){
@@ -240,7 +271,7 @@
       var old=screens[selectedScreen]||{},payload={
         screenCode:selectedScreen,title:'الشاشة '+selectedScreen,carId:selectedCarData.id,vehicleId:selectedCarData.vehicleId||'',carUrl:selectedCarData.carUrl,carName:selectedCarData.title,carPrice:selectedCarData.price||'',status:'active',
         imageFilterColor:draft.color||'all',imageFilterLabel:draft.colorLabel||draft.color||'',selectedImages:draft.selectedImages.slice(),sliderImages:draft.selectedImages.slice(),imageSelectionCarId:String(selectedCarData.id||''),sliderMode:draft.selectedImages.length?'manual':(draft.color&&draft.color!=='all'?'color':'all'),
-        forceRefresh:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        themeId:draft.themeId||old.themeId||'',forceRefresh:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()
       };
       try{await db.collection('showroom_screens').doc(selectedScreen).set(payload,{merge:true});await db.collection('showroom_car_cache').doc(hash('id:'+selectedCarData.id)).set(selectedCarData,{merge:true}).catch(function(){});screens[selectedScreen]=Object.assign({},old,payload);draftDirty=false;toggleDraftNotice(false);renderScreenTabs();updateMetrics();$('selectedScreenStatus').className='badge active';$('selectedScreenStatus').textContent='مرتبطة';refreshPreviewFrame();setMsg('تم حفظ '+selectedScreen+' وربطها بهذه السيارة فقط بنجاح.','ok');}
       catch(e){setMsg('فشل الحفظ: '+e.message,'error');}
