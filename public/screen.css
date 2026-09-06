@@ -10,7 +10,7 @@ button{touch-action:manipulation}
 .hidden{display:none!important}
 
 /* =========================================================
-   MZJ SHOWROOM V66 CLEAN
+   MZJ SHOWROOM V67 CLEAN
    - Gallery preserves every source image with object-fit: contain.
    - Occasion logo and caption are independently positionable.
    - Information side is rebuilt as one premium composition.
@@ -116,6 +116,12 @@ button{touch-action:manipulation}
 .identity-caption-wrap{max-width:44%;gap:4px}
 .identity-caption{max-width:100%;font-weight:900;line-height:1.15;overflow-wrap:anywhere;white-space:normal}
 .identity-number{font-size:clamp(29px,3vw,50px);line-height:.92;font-weight:900;color:var(--accent2);letter-spacing:-1px}
+.identity-logo-wrap.position-top-left{left:15%;top:10%}.identity-logo-wrap.position-top-center{left:50%;top:10%}.identity-logo-wrap.position-top-right{left:85%;top:10%}
+.identity-logo-wrap.position-middle-left{left:15%;top:40%}.identity-logo-wrap.position-center{left:50%;top:40%}.identity-logo-wrap.position-middle-right{left:85%;top:40%}
+.identity-logo-wrap.position-bottom-left{left:15%;top:73%}.identity-logo-wrap.position-bottom-center{left:50%;top:73%}.identity-logo-wrap.position-bottom-right{left:85%;top:73%}
+.identity-caption-wrap.position-top-left{left:15%;top:20%}.identity-caption-wrap.position-top-center{left:50%;top:20%}.identity-caption-wrap.position-top-right{left:85%;top:20%}
+.identity-caption-wrap.position-middle-left{left:15%;top:50%}.identity-caption-wrap.position-center{left:50%;top:50%}.identity-caption-wrap.position-middle-right{left:85%;top:50%}
+.identity-caption-wrap.position-bottom-left{left:15%;top:86%}.identity-caption-wrap.position-bottom-center{left:50%;top:86%}.identity-caption-wrap.position-bottom-right{left:85%;top:86%}
 
 .gallery-arrow{
   position:absolute;z-index:12;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;border:1px solid var(--accent);
