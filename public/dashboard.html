@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script>document.write('<link rel="stylesheet" href="/dashboard.css?mzjv65='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');</script>
+  <script>document.write('<link rel="stylesheet" href="/dashboard.css?mzjv66='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');</script>
 </head>
 <body class="dashboard-control-body">
   <div id="login" class="login hidden">
@@ -121,6 +121,22 @@
 
                   <label class="theme-control-card theme-size-field"><span class="field-title">حجم خط الكتابة</span><div class="theme-size-control"><input id="themeCaptionFontSize" type="range" min="10" max="40" step="1" oninput="updateThemeCaptionFontSize(this.value)"><b id="themeCaptionFontSizeView">16px</b></div></label>
 
+                  <div class="theme-control-card theme-position-card">
+                    <span class="field-title">مكان شعار المناسبة</span>
+                    <div class="position-axis-grid">
+                      <label><span>أفقي</span><input id="themeLogoX" type="range" min="4" max="96" step="1" oninput="updateThemeLogoX(this.value)"><b id="themeLogoXView">15%</b></label>
+                      <label><span>رأسي</span><input id="themeLogoY" type="range" min="4" max="96" step="1" oninput="updateThemeLogoY(this.value)"><b id="themeLogoYView">10%</b></label>
+                    </div>
+                  </div>
+
+                  <div class="theme-control-card theme-position-card">
+                    <span class="field-title">مكان الكتابة تحت الشعار</span>
+                    <div class="position-axis-grid">
+                      <label><span>أفقي</span><input id="themeCaptionX" type="range" min="4" max="96" step="1" oninput="updateThemeCaptionX(this.value)"><b id="themeCaptionXView">15%</b></label>
+                      <label><span>رأسي</span><input id="themeCaptionY" type="range" min="4" max="96" step="1" oninput="updateThemeCaptionY(this.value)"><b id="themeCaptionYView">19%</b></label>
+                    </div>
+                  </div>
+
                   <div class="theme-control-card theme-color-field">
                     <span class="field-title">لون الكتابة</span>
                     <div class="theme-color-control"><input id="themeCaptionColor" type="color" value="#ffffff" oninput="updateThemeCaptionColor(this.value)"><input id="themeCaptionColorHex" class="color-hex-input" type="text" maxlength="7" value="#ffffff" onchange="updateThemeCaptionColor(this.value)" onkeydown="if(event.key==='Enter'){this.blur()}"></div>
@@ -184,7 +200,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    document.write('<script src="/firebase-config.js?mzjv65='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+    document.write('<script src="/firebase-config.js?mzjv66='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
   </script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
@@ -201,11 +217,11 @@
     var draft={color:'all',colorLabel:'',selectedImages:[],themeId:''},draftDirty=false;
     var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right',activeThemeId:'ramadan'};
     var themeDefaults={
-      ramadan:{logoDataUrl:'',logoSize:120,caption:'رمضان يجمعنا',captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#071c35',captionStrokeWidth:1},
-      national:{logoDataUrl:'/assets/themes/national-day-default.png',logoSize:120,caption:'اليوم الوطني السعودي',captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#004631',captionStrokeWidth:1,nationalDayNumber:'96'},
-      founding:{logoDataUrl:'',logoSize:120,caption:'جذورنا تصنع مستقبلنا',captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#4b2e1f',captionStrokeWidth:1},
-      'eid-fitr':{logoDataUrl:'',logoSize:120,caption:'عيدكم أجمل',captionFontSize:16,captionColor:'#3d2b1f',captionStrokeColor:'#fff8e8',captionStrokeWidth:1},
-      'eid-adha':{logoDataUrl:'',logoSize:120,caption:'عيد أضحى مبارك',captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#48121f',captionStrokeWidth:1}
+      ramadan:{logoDataUrl:'',logoSize:120,caption:'رمضان يجمعنا',captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#071c35',captionStrokeWidth:1,logoX:15,logoY:10,captionX:15,captionY:19},
+      national:{logoDataUrl:'/assets/themes/national-day-default.png',logoSize:120,caption:'اليوم الوطني السعودي',captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#004631',captionStrokeWidth:1,nationalDayNumber:'96',logoX:15,logoY:10,captionX:15,captionY:19},
+      founding:{logoDataUrl:'',logoSize:120,caption:'جذورنا تصنع مستقبلنا',captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#4b2e1f',captionStrokeWidth:1,logoX:15,logoY:10,captionX:15,captionY:19},
+      'eid-fitr':{logoDataUrl:'',logoSize:120,caption:'عيدكم أجمل',captionFontSize:16,captionColor:'#3d2b1f',captionStrokeColor:'#fff8e8',captionStrokeWidth:1,logoX:15,logoY:10,captionX:15,captionY:19},
+      'eid-adha':{logoDataUrl:'',logoSize:120,caption:'عيد أضحى مبارك',captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#48121f',captionStrokeWidth:1,logoX:15,logoY:10,captionX:15,captionY:19}
     };
     var themeSettings={};
 
@@ -280,19 +296,24 @@
     }
     function selectTheme(id){if(!themeById(id))return;draft.themeId=id;draftDirty=true;renderThemePicker();toggleDraftNotice(true);}
     function currentThemeConfig(){var id=draft.themeId||displaySettings.activeThemeId||'ramadan';if(!themeSettings[id])themeSettings[id]=Object.assign({},themeDefaults[id]||themeDefaults.ramadan);return themeSettings[id];}
+    function clampThemePercent(value,fallback){var n=Number(value);if(!isFinite(n))n=Number(fallback||50);return Math.max(4,Math.min(96,n));}
     function renderThemeIdentitySettings(){
       var box=$('themeIdentityConfig');if(!box)return;
-      var id=draft.themeId||displaySettings.activeThemeId||'ramadan',t=themeById(id)||THEMES[0],cfg=currentThemeConfig();
+      var id=draft.themeId||displaySettings.activeThemeId||'ramadan',t=themeById(id)||THEMES[0],cfg=currentThemeConfig(),def=themeDefaults[id]||themeDefaults.ramadan;
       var logoSize=Math.max(60,Math.min(260,Number(cfg.logoSize||120)));
       var captionSize=Math.max(10,Math.min(40,Number(cfg.captionFontSize||16)));
-      var captionColor=normalizeHexColor(cfg.captionColor,themeDefaults[id].captionColor||'#ffffff');
-      var strokeColor=normalizeHexColor(cfg.captionStrokeColor,themeDefaults[id].captionStrokeColor||'#000000');
+      var captionColor=normalizeHexColor(cfg.captionColor,def.captionColor||'#ffffff');
+      var strokeColor=normalizeHexColor(cfg.captionStrokeColor,def.captionStrokeColor||'#000000');
       var strokeWidth=Math.max(0,Math.min(4,Number(cfg.captionStrokeWidth==null?1:cfg.captionStrokeWidth)));
-      cfg.captionColor=captionColor;cfg.captionStrokeColor=strokeColor;cfg.captionStrokeWidth=strokeWidth;
+      var logoX=clampThemePercent(cfg.logoX,def.logoX||15),logoY=clampThemePercent(cfg.logoY,def.logoY||10);
+      var captionX=clampThemePercent(cfg.captionX,def.captionX||15),captionY=clampThemePercent(cfg.captionY,def.captionY||19);
+      cfg.captionColor=captionColor;cfg.captionStrokeColor=strokeColor;cfg.captionStrokeWidth=strokeWidth;cfg.logoX=logoX;cfg.logoY=logoY;cfg.captionX=captionX;cfg.captionY=captionY;
       $('themeConfigTitle').textContent='هوية '+t.title;
       $('themeCaptionInput').value=cleanText(cfg.caption||'');
       $('themeLogoSize').value=logoSize;$('themeLogoSizeView').textContent=logoSize+'px';
       $('themeCaptionFontSize').value=captionSize;$('themeCaptionFontSizeView').textContent=captionSize+'px';
+      $('themeLogoX').value=logoX;$('themeLogoXView').textContent=logoX+'%';$('themeLogoY').value=logoY;$('themeLogoYView').textContent=logoY+'%';
+      $('themeCaptionX').value=captionX;$('themeCaptionXView').textContent=captionX+'%';$('themeCaptionY').value=captionY;$('themeCaptionYView').textContent=captionY+'%';
       $('themeCaptionColor').value=captionColor;$('themeCaptionColorHex').value=captionColor;
       $('themeCaptionStrokeColor').value=strokeColor;$('themeCaptionStrokeColorHex').value=strokeColor;
       $('themeCaptionStrokeWidth').value=strokeWidth;$('themeCaptionStrokeWidthView').textContent=(strokeWidth%1?strokeWidth.toFixed(2).replace(/0+$/,'').replace(/\.$/,''):strokeWidth)+'px';
@@ -301,9 +322,10 @@
       preview.className='theme-logo-preview theme-preview-'+id;
       var textStyle='font-size:'+captionSize+'px;color:'+captionColor+';-webkit-text-stroke:'+strokeWidth+'px '+strokeColor+';paint-order:stroke fill;';
       preview.innerHTML='<div class="theme-preview-surface">'+
-        (cfg.logoDataUrl?'<img src="'+esc(cfg.logoDataUrl)+'" alt="شعار '+esc(t.title)+'" style="width:'+logoSize+'px">':'<div class="theme-logo-empty">لا يوجد شعار مرفوع لهذا التصميم</div>')+
-        '<strong class="theme-caption-preview" style="'+textStyle+'">'+esc(cleanText(cfg.caption||''))+'</strong>'+
-        (id==='national'?'<b class="theme-number-preview">'+esc(cleanText(cfg.nationalDayNumber||'96'))+'</b>':'')+
+        (cfg.logoDataUrl?'<div class="theme-preview-logo" style="left:'+logoX+'%;top:'+logoY+'%;width:'+logoSize+'px"><img src="'+esc(cfg.logoDataUrl)+'" alt="شعار '+esc(t.title)+'"></div>':'<div class="theme-logo-empty">لا يوجد شعار مرفوع لهذا التصميم</div>')+
+        '<div class="theme-preview-caption-group" style="left:'+captionX+'%;top:'+captionY+'%"><strong class="theme-caption-preview" style="'+textStyle+'">'+esc(cleanText(cfg.caption||''))+'</strong>'+
+        (id==='national'?'<b class="theme-number-preview">'+esc(cleanText(cfg.nationalDayNumber||'96'))+'</b>':'')+'</div>'+
+        '<span class="theme-preview-axis theme-preview-axis-x"></span><span class="theme-preview-axis theme-preview-axis-y"></span>'+
         '</div><small class="theme-preview-theme-name">'+esc(t.title)+'</small>';
     }
     function chooseThemeLogo(input){var file=input.files&&input.files[0];if(!file)return;if(file.size>600*1024){setMsg('حجم الشعار كبير. اختار ملف أقل من 600KB.','error');input.value='';return;}var reader=new FileReader();reader.onload=function(){currentThemeConfig().logoDataUrl=String(reader.result||'');draftDirty=true;renderThemeIdentitySettings();renderThemePicker();toggleDraftNotice(true);};reader.readAsDataURL(file);}
@@ -311,6 +333,10 @@
     function updateThemeCaption(value){currentThemeConfig().caption=String(value||'').slice(0,80);draftDirty=true;renderThemeIdentitySettings();renderThemePicker();toggleDraftNotice(true);}
     function updateThemeLogoSize(value){var v=Math.max(60,Math.min(260,Number(value||120)));currentThemeConfig().logoSize=v;draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
     function updateThemeCaptionFontSize(value){var v=Math.max(10,Math.min(40,Number(value||16)));currentThemeConfig().captionFontSize=v;draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
+    function updateThemeLogoX(value){currentThemeConfig().logoX=clampThemePercent(value,15);draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
+    function updateThemeLogoY(value){currentThemeConfig().logoY=clampThemePercent(value,10);draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
+    function updateThemeCaptionX(value){currentThemeConfig().captionX=clampThemePercent(value,15);draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
+    function updateThemeCaptionY(value){currentThemeConfig().captionY=clampThemePercent(value,19);draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
     function updateThemeCaptionColor(value){var id=draft.themeId||displaySettings.activeThemeId||'ramadan',cfg=currentThemeConfig();cfg.captionColor=normalizeHexColor(value,themeDefaults[id].captionColor||'#ffffff');draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
     function updateThemeCaptionStrokeColor(value){var id=draft.themeId||displaySettings.activeThemeId||'ramadan',cfg=currentThemeConfig();cfg.captionStrokeColor=normalizeHexColor(value,themeDefaults[id].captionStrokeColor||'#000000');draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
     function updateThemeCaptionStrokeWidth(value){var v=Math.max(0,Math.min(4,Number(value||0)));currentThemeConfig().captionStrokeWidth=v;draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
@@ -329,7 +355,7 @@
         await db.collection('showroom_theme_settings').doc(draft.themeId).set(Object.assign({},cfg,{updatedAt:firebase.firestore.FieldValue.serverTimestamp()}),{merge:true});
         await db.collection('showroom_settings').doc('display').set({activeThemeId:draft.themeId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
         await Promise.all(CODES.map(function(code){var old=screens[code]||{},payload={themeId:draft.themeId,forceRefresh:stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};screens[code]=Object.assign({},old,payload);return db.collection('showroom_screens').doc(code).set(payload,{merge:true});}));
-        draftDirty=hasUnsavedVehicleDraft();toggleDraftNotice(draftDirty);renderThemePicker();renderScreenTabs();refreshPreviewFrame();setMsg('تم حفظ تصميم '+themeById(draft.themeId).title+' وهوية الشعار وألوان النص وإطاره وتطبيقه على كل الشاشات.','ok');
+        draftDirty=hasUnsavedVehicleDraft();toggleDraftNotice(draftDirty);renderThemePicker();renderScreenTabs();refreshPreviewFrame();setMsg('تم حفظ تصميم '+themeById(draft.themeId).title+' وهوية المناسبة ومواقع الشعار والكتابة وألوان النص وإطاره وتطبيقه على كل الشاشات.','ok');
       }catch(e){setMsg('تعذر حفظ تصميم العرض: '+e.message,'error');}
     }
 
