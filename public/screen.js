@@ -117,7 +117,7 @@ function featureTitle(key){return key==='interior'?'المواصفات الدا�
 function featurePageSize(){return 14;}
 function featurePageCount(section){var items=featureData()[section]||[];return Math.max(1,Math.ceil(items.length/featurePageSize()));}
 
-/* ---------- V64 clean editorial composition ---------- */
+/* ---------- V65 clean professional information composition ---------- */
 function identityHtml(){
   var id=activeThemeId(),defaults=themeDefaults(id);
   var logo=String(themeIdentity.logoDataUrl||'');
@@ -139,18 +139,18 @@ function identityHtml(){
 function mzjLogoHtml(){if(!displaySettings.logoDataUrl)return'';var pos=displaySettings.logoPosition==='left'?'logo-left':'logo-right';return'<div class="brand-row '+pos+'"><img class="mzj-logo" src="'+esc(displaySettings.logoDataUrl)+'" alt="MZJ"></div>';}
 function colorChip(row,type){var active=type==='external'&&selectedColorName()&&normArabic(row.name)===normArabic(selectedColorName());return'<span class="color-chip '+(active?'active':'')+'"><i style="background:'+esc(row.background||'#dedede')+'"></i><b>'+esc(row.name)+'</b></span>';}
 function colorsHtml(){var rows=colorRows(),parts=[];if(rows.external.length)parts.push('<div class="color-line"><span>الخارجي</span><div class="color-list">'+rows.external.map(function(r){return colorChip(r,'external');}).join('')+'</div></div>');if(rows.internal.length)parts.push('<div class="color-line"><span>الداخلي</span><div class="color-list">'+rows.internal.map(function(r){return colorChip(r,'internal');}).join('')+'</div></div>');return parts.length?'<div class="colors-ribbon"><strong>الألوان المتاحة</strong><div class="color-groups">'+parts.join('')+'</div></div>':'';}
-function editorialHeading(index,text){return'<div class="editorial-heading"><span class="editorial-index">'+esc(index)+'</span><strong>'+esc(text)+'</strong><i></i></div>';}
+function sectionHeading(index,text){return'<div class="section-heading"><span class="section-number">'+esc(index)+'</span><strong>'+esc(text)+'</strong><i class="section-rule"></i></div>';}
 function mainSpecsHtml(){
-  var specs=mainSpecs();if(!specs.length)return'';var cols=specs.length>6?4:Math.max(1,specs.length);
-  return'<section class="spec-story">'+editorialHeading('01','المواصفات الرئيسية')+
-    '<div class="spec-orbit" data-count="'+specs.length+'" style="--orbit-cols:'+cols+'">'+specs.map(function(x,i){return'<div class="spec-point" data-order="'+(i+1)+'"><span class="spec-glyph">'+specIcon(x[2])+'</span><div><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div></div>';}).join('')+'</div></section>';
+  var specs=mainSpecs();if(!specs.length)return'';
+  return'<section class="spec-section">'+sectionHeading('01','المواصفات الرئيسية')+
+    '<div class="spec-grid">'+specs.map(function(x,i){return'<div class="spec-item" data-order="'+(i+1)+'"><span class="spec-icon">'+specIcon(x[2])+'</span><div class="spec-copy"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div></div>';}).join('')+'</div></section>';
 }
 function techHtml(){
   var groups=technicalGroups();if(!groups.length)return'';if(techIndex>=groups.length)techIndex=0;
   var g=groups[techIndex],cols=Math.max(1,Math.min(g.items.length,4));
-  return'<section class="engineering-story"><div class="engineering-head">'+editorialHeading('02','المواصفات الفنية')+
+  return'<section class="tech-section"><div class="tech-heading-row">'+sectionHeading('02','المواصفات الفنية')+
     '<div class="tech-tabs">'+groups.map(function(x,i){return'<button type="button" class="tech-tab '+(i===techIndex?'active':'')+'" data-tech="'+i+'"><span>'+esc(x.title)+'</span></button>';}).join('')+'</div></div>'+
-    '<div class="engineering-stream" style="--engineering-cols:'+cols+'">'+g.items.map(function(x,i){return'<div class="engineering-point" data-order="'+(i+1)+'"><span class="engineering-glyph">'+specIcon(x[2])+'</span><div><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div></div>';}).join('')+'</div></section>';
+    '<div class="tech-grid" style="--tech-cols:'+cols+'">'+g.items.map(function(x,i){return'<div class="tech-item" data-order="'+(i+1)+'"><span class="tech-icon">'+specIcon(x[2])+'</span><div class="tech-copy"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div></div>';}).join('')+'</div></section>';
 }
 function pagerHtml(total){if(total<=1)return'<div class="feature-pager"><strong>1 / 1</strong></div>';return'<div class="feature-pager"><button type="button" class="feature-page-btn" data-step="-1" aria-label="الصفحة السابقة">‹</button><strong>'+(featurePage+1)+' / '+total+'</strong><button type="button" class="feature-page-btn" data-step="1" aria-label="الصفحة التالية">›</button></div>';}
 function featuresHtml(){
@@ -158,10 +158,10 @@ function featuresHtml(){
   if(valid.indexOf(featureSection)<0){featureSection=valid[0];featurePage=0;}
   var items=groups[featureSection]||[],pages=Math.max(1,Math.ceil(items.length/14));if(featurePage>=pages)featurePage=0;if(featurePage<0)featurePage=pages-1;
   var visible=items.slice(featurePage*14,(featurePage+1)*14),right=visible.slice(0,7),left=visible.slice(7,14);
-  function rows(arr){return arr.map(function(x,i){return'<div class="feature-note" data-order="'+(i+1)+'"><i></i><span>'+esc(x)+'</span></div>';}).join('');}
-  return'<section class="feature-story"><div class="feature-story-head">'+editorialHeading('03','المواصفات والمميزات')+
+  function rows(arr){return arr.map(function(x,i){return'<div class="feature-item" data-order="'+(i+1)+'"><i class="feature-bullet"></i><span>'+esc(x)+'</span></div>';}).join('');}
+  return'<section class="features-section"><div class="features-heading-row">'+sectionHeading('03','المواصفات والمميزات')+
     '<div class="feature-tabs">'+valid.map(function(k){return'<button type="button" class="feature-tab '+(k===featureSection?'active':'')+'" data-section="'+k+'"><span>'+esc(featureTitle(k))+'</span></button>';}).join('')+'</div></div>'+
-    '<div class="feature-ledgers"><div class="feature-ledger feature-ledger-right">'+rows(right)+'</div><div class="feature-ledger feature-ledger-left">'+rows(left)+'</div></div>'+pagerHtml(pages)+'</section>';
+    '<div class="feature-columns"><div class="feature-column feature-column-right">'+rows(right)+'</div><div class="feature-column feature-column-left">'+rows(left)+'</div></div>'+pagerHtml(pages)+'</section>';
 }
 function bottomHtml(){return'<footer class="bottom-composition"><div class="qr-side"><div id="showroomQr" class="qr-box"></div><div class="qr-copy"><strong>تفاصيل السيارة على جوالك</strong><span>امسح الرمز لعرض التفاصيل الكاملة</span></div></div><div class="tagline">رحلة أجمل .. مع MZJ</div></footer>';}
 
