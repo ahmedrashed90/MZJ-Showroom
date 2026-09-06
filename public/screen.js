@@ -4,6 +4,7 @@ var PAGE_CACHE_BUSTER=window.MZJ_PAGE_CACHE_BUSTER||String(Date.now());
 
 function esc(s){return String(s||'').replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];});}
 function cleanText(s){return String(s||'').replace(/\s+/g,' ').trim();}
+function normalizeHexColor(value,fallback){var v=String(value||'').trim();if(/^#[0-9a-fA-F]{6}$/.test(v))return v.toLowerCase();if(/^#[0-9a-fA-F]{3}$/.test(v))return ('#'+v.slice(1).split('').map(function(c){return c+c;}).join('')).toLowerCase();return String(fallback||'#ffffff').toLowerCase();}
 function normArabic(s){return cleanText(s).toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[ًٌٍَُِّْـ]/g,'').replace(/[^\u0600-\u06ff0-9a-z]+/g,' ').replace(/\s+/g,' ').trim();}
 function uniq(arr){var seen={};return(arr||[]).map(cleanText).filter(function(x){var k=normArabic(x);if(!x||seen[k])return false;seen[k]=1;return true;});}
 function badImage(url){return /default-car|placeholder|no-image|noimage|logo|mzj-logo|favicon|icon|cropped-site-icon|cropped-logo|avatar|loader|spinner|blank/i.test(String(url||''));}
@@ -16,11 +17,11 @@ var data=null;
 var screenOptions={carId:'',carUrl:'',carName:'',carPrice:'',imageFilterColor:'all',imageFilterLabel:'',selectedImages:[],sliderImages:[],sliderMode:'all',themeId:''};
 var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right',activeThemeId:'ramadan'};
 var THEME_DEFAULTS={
-  ramadan:{title:'رمضان',caption:'رمضان يجمعنا',logoDataUrl:'',logoSize:120,captionFontSize:16},
-  national:{title:'اليوم الوطني',caption:'اليوم الوطني السعودي',logoDataUrl:'/assets/themes/national-day-default.png',logoSize:120,captionFontSize:16,nationalDayNumber:'96'},
-  founding:{title:'يوم التأسيس',caption:'جذورنا تصنع مستقبلنا',logoDataUrl:'',logoSize:120,captionFontSize:16},
-  'eid-fitr':{title:'عيد الفطر',caption:'عيدكم أجمل',logoDataUrl:'',logoSize:120,captionFontSize:16},
-  'eid-adha':{title:'عيد الأضحى',caption:'عيد أضحى مبارك',logoDataUrl:'',logoSize:120,captionFontSize:16}
+  ramadan:{title:'رمضان',caption:'رمضان يجمعنا',logoDataUrl:'',logoSize:120,captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#071c35',captionStrokeWidth:1},
+  national:{title:'اليوم الوطني',caption:'اليوم الوطني السعودي',logoDataUrl:'/assets/themes/national-day-default.png',logoSize:120,captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#004631',captionStrokeWidth:1,nationalDayNumber:'96'},
+  founding:{title:'يوم التأسيس',caption:'جذورنا تصنع مستقبلنا',logoDataUrl:'',logoSize:120,captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#4b2e1f',captionStrokeWidth:1},
+  'eid-fitr':{title:'عيد الفطر',caption:'عيدكم أجمل',logoDataUrl:'',logoSize:120,captionFontSize:16,captionColor:'#3d2b1f',captionStrokeColor:'#fff8e8',captionStrokeWidth:1},
+  'eid-adha':{title:'عيد الأضحى',caption:'عيد أضحى مبارك',logoDataUrl:'',logoSize:120,captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#48121f',captionStrokeWidth:1}
 };
 var themeIdentity=Object.assign({},THEME_DEFAULTS.ramadan);
 var themeIdentityUnsub=null;
@@ -116,17 +117,22 @@ function featureTitle(key){return key==='interior'?'المواصفات الدا�
 function featurePageSize(){return 14;}
 function featurePageCount(section){var items=featureData()[section]||[];return Math.max(1,Math.ceil(items.length/featurePageSize()));}
 
-/* ---------- V61 clean composition ---------- */
+/* ---------- V63 clean composition ---------- */
 function identityHtml(){
+  var id=activeThemeId(),defaults=themeDefaults(id);
   var logo=String(themeIdentity.logoDataUrl||'');
   var size=Math.max(60,Math.min(260,parseInt(themeIdentity.logoSize||120,10)));
   var caption=cleanText(themeIdentity.caption||'');
-  var captionSize=Math.max(10,Math.min(32,parseInt(themeIdentity.captionFontSize||16,10)));
-  var number=activeThemeId()==='national'?cleanText(themeIdentity.nationalDayNumber||'96'):'';
+  var captionSize=Math.max(10,Math.min(40,parseInt(themeIdentity.captionFontSize||16,10)));
+  var captionColor=normalizeHexColor(themeIdentity.captionColor,defaults.captionColor||'#ffffff');
+  var strokeColor=normalizeHexColor(themeIdentity.captionStrokeColor,defaults.captionStrokeColor||'#000000');
+  var strokeWidth=Math.max(0,Math.min(4,Number(themeIdentity.captionStrokeWidth==null?1:themeIdentity.captionStrokeWidth)));
+  var number=id==='national'?cleanText(themeIdentity.nationalDayNumber||'96'):'';
   if(!logo&&!caption&&!number)return'';
+  var captionStyle='font-size:'+captionSize+'px;color:'+captionColor+';-webkit-text-stroke:'+strokeWidth+'px '+strokeColor+';paint-order:stroke fill;';
   return'<div class="theme-identity-overlay">'+
     (logo?'<img src="'+esc(logo)+'" alt="" style="width:'+size+'px">':'')+
-    (caption?'<div class="identity-caption" style="font-size:'+captionSize+'px">'+esc(caption)+'</div>':'')+
+    (caption?'<div class="identity-caption" style="'+captionStyle+'">'+esc(caption)+'</div>':'')+
     (number?'<div class="identity-number">'+esc(number)+'</div>':'')+
   '</div>';
 }

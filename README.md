@@ -1,11 +1,15 @@
-# MZJ Showroom Seasonal Design V62 CLEAN
+# MZJ Showroom Seasonal Design V63 CLEAN
 
-Production source based on the clean showroom logic.
+نسخة كاملة مبنية على منطق V62 مع إعادة تنسيق أصلية للداش بورد وتوسيع إعدادات هوية المناسبات بدون Patch أو CSS overrides متراكمة.
 
-V62 change:
-- Removed the artificial dark halo behind the occasion identity overlay.
-- Removed CSS drop-shadow from the occasion logo.
-- Removed text-shadow from the occasion caption and National Day number.
-- No CSS override patch was appended; the identity component definition itself was rewritten.
-- Existing Firestore, vehicle, image, QR, feature, theme and dashboard logic remains unchanged.
-- Tajawal remains the primary interface font.
+## التعديلات
+- Tajawal هو الخط الأساسي للداش بورد وشاشة العرض.
+- لكل مناسبة إعدادات مستقلة: الشعار، حجم الشعار، النص تحت الشعار، حجم خط النص.
+- إضافة اختيار لون النص من Color Picker أو HEX.
+- إضافة إطار حقيقي للحروف باستخدام Text Stroke بدون Shadow.
+- إضافة اختيار لون إطار النص من Color Picker أو HEX.
+- إضافة تحكم في سمك إطار النص من 0 إلى 4px.
+- الإعدادات الجديدة تُحفظ داخل `showroom_theme_settings/{themeId}` وتُطبق مباشرة على شاشة العرض.
+- إعادة كتابة `dashboard.css` بالكامل بهيكل منظم ومتجاوب بدل تراكم تنسيقات فوق القديمة.
+- إعادة تنظيم استوديو هوية المناسبة داخل الداش بورد مع معاينة مباشرة للنص والـStroke على خلفية الثيم.
+- الحفاظ على منطق Firestore والشاشات والسيارات والصور والألوان وQR والمواصفات دون تغيير.

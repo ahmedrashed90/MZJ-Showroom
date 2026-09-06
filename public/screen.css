@@ -55,7 +55,7 @@ button{touch-action:manipulation}
 
 /* -----------------------------
    LEFT: full-width adaptive image gallery
-   V62 clean display: no side rail. Occasion identity lives on the photo without artificial shadows.
+   V63 clean display: no side rail. Occasion identity lives on the photo without artificial shadows.
    ----------------------------- */
 .visual-zone{
   position:relative;isolation:isolate;overflow:hidden;direction:rtl;

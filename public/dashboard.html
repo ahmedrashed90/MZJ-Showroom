@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script>document.write('<link rel="stylesheet" href="/dashboard.css?mzjv60='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');</script>
+  <script>document.write('<link rel="stylesheet" href="/dashboard.css?mzjv63='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'">');</script>
 </head>
 <body class="dashboard-control-body">
   <div id="login" class="login hidden">
@@ -92,22 +92,49 @@
             <div class="theme-selector-head"><div><span class="eyebrow">التصميم العام لكل الشاشات</span><h3>اختر التصميم الموسمي العام</h3><div class="subtitle">اختيار التصميم هنا يطبّق على كل الشاشات مرة واحدة.</div></div><button class="btn primary" onclick="saveSelectedTheme()">حفظ وتطبيق على كل الشاشات</button></div>
             <div id="themePicker" class="theme-picker theme-picker-rich"></div>
             <div id="themeIdentityConfig" class="theme-identity-config">
-              <div class="theme-config-copy">
-                <span class="eyebrow">إعدادات هوية التصميم</span>
-                <h4 id="themeConfigTitle">هوية المناسبة</h4>
-                <p>الشعار يظهر أعلى النص داخل تصميم الصورة. كل مناسبة لها شعار وحجم شعار ونص وحجم خط مستقل.</p>
-              </div>
-              <div class="theme-config-fields">
-                <div class="theme-logo-field">
-                  <span>شعار المناسبة</span>
-                  <input id="themeLogoFile" class="hidden" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="chooseThemeLogo(this)">
-                  <div class="theme-logo-actions"><button class="btn small primary" type="button" onclick="document.getElementById('themeLogoFile').click()">اختيار / تغيير الشعار</button><button class="btn small" type="button" onclick="removeThemeLogo()">إزالة الشعار</button></div>
-                  <div id="themeLogoPreview" class="theme-logo-preview"></div>
+              <div class="theme-identity-head">
+                <div class="theme-config-copy">
+                  <span class="eyebrow">هوية المناسبة داخل الصورة</span>
+                  <h4 id="themeConfigTitle">هوية المناسبة</h4>
+                  <p>اضبط الشعار والنص وألوانه من مكان واحد. المعاينة هنا توضّح ظهور النص على الخلفيات الفاتحة والغامقة قبل الحفظ.</p>
                 </div>
-                <label class="theme-text-field"><span>الكتابة تحت الشعار</span><input id="themeCaptionInput" type="text" maxlength="80" oninput="updateThemeCaption(this.value)" placeholder="اكتب النص الذي يظهر تحت الشعار"></label>
-                <label class="theme-size-field"><span>حجم الشعار</span><div class="theme-size-control"><input id="themeLogoSize" type="range" min="60" max="260" step="5" oninput="updateThemeLogoSize(this.value)"><b id="themeLogoSizeView">120px</b></div></label>
-                <label class="theme-size-field"><span>حجم خط الكتابة تحت الشعار</span><div class="theme-size-control"><input id="themeCaptionFontSize" type="range" min="10" max="32" step="1" oninput="updateThemeCaptionFontSize(this.value)"><b id="themeCaptionFontSizeView">16px</b></div></label>
-                <label id="nationalNumberField" class="theme-number-field hidden"><span>رقم اليوم الوطني</span><div class="theme-number-input-wrap"><input id="nationalDayNumber" inputmode="numeric" maxlength="3" value="96" oninput="updateNationalDayNumber(this.value)"><b>اليوم الوطني السعودي</b></div></label>
+                <div class="theme-identity-badge">يُطبق على كل الشاشات</div>
+              </div>
+
+              <div class="theme-identity-workspace">
+                <div class="theme-preview-column">
+                  <div class="theme-preview-column-head"><span>معاينة الهوية</span><small>الشعار ثم الكتابة تحته داخل فريم الصورة</small></div>
+                  <div id="themeLogoPreview" class="theme-logo-preview"></div>
+                  <div class="theme-preview-note">الإطار حول الحروف ليس ظلًا؛ هو Stroke واضح بلون وسمك تختاره أنت.</div>
+                </div>
+
+                <div class="theme-config-fields">
+                  <div class="theme-control-card theme-logo-field">
+                    <span class="field-title">شعار المناسبة</span>
+                    <input id="themeLogoFile" class="hidden" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="chooseThemeLogo(this)">
+                    <div class="theme-logo-actions"><button class="btn small primary" type="button" onclick="document.getElementById('themeLogoFile').click()">اختيار / تغيير الشعار</button><button class="btn small" type="button" onclick="removeThemeLogo()">إزالة الشعار</button></div>
+                  </div>
+
+                  <label class="theme-control-card theme-text-field"><span class="field-title">الكتابة تحت الشعار</span><input id="themeCaptionInput" type="text" maxlength="80" oninput="updateThemeCaption(this.value)" placeholder="اكتب النص الذي يظهر تحت الشعار"></label>
+
+                  <label class="theme-control-card theme-size-field"><span class="field-title">حجم الشعار</span><div class="theme-size-control"><input id="themeLogoSize" type="range" min="60" max="260" step="5" oninput="updateThemeLogoSize(this.value)"><b id="themeLogoSizeView">120px</b></div></label>
+
+                  <label class="theme-control-card theme-size-field"><span class="field-title">حجم خط الكتابة</span><div class="theme-size-control"><input id="themeCaptionFontSize" type="range" min="10" max="40" step="1" oninput="updateThemeCaptionFontSize(this.value)"><b id="themeCaptionFontSizeView">16px</b></div></label>
+
+                  <div class="theme-control-card theme-color-field">
+                    <span class="field-title">لون الكتابة</span>
+                    <div class="theme-color-control"><input id="themeCaptionColor" type="color" value="#ffffff" oninput="updateThemeCaptionColor(this.value)"><input id="themeCaptionColorHex" class="color-hex-input" type="text" maxlength="7" value="#ffffff" onchange="updateThemeCaptionColor(this.value)" onkeydown="if(event.key==='Enter'){this.blur()}"></div>
+                  </div>
+
+                  <div class="theme-control-card theme-color-field">
+                    <span class="field-title">لون إطار الكتابة</span>
+                    <div class="theme-color-control"><input id="themeCaptionStrokeColor" type="color" value="#000000" oninput="updateThemeCaptionStrokeColor(this.value)"><input id="themeCaptionStrokeColorHex" class="color-hex-input" type="text" maxlength="7" value="#000000" onchange="updateThemeCaptionStrokeColor(this.value)" onkeydown="if(event.key==='Enter'){this.blur()}"></div>
+                  </div>
+
+                  <label class="theme-control-card theme-size-field"><span class="field-title">سمك إطار الكتابة</span><div class="theme-size-control"><input id="themeCaptionStrokeWidth" type="range" min="0" max="4" step="0.25" oninput="updateThemeCaptionStrokeWidth(this.value)"><b id="themeCaptionStrokeWidthView">1px</b></div></label>
+
+                  <label id="nationalNumberField" class="theme-control-card theme-number-field hidden"><span class="field-title">رقم اليوم الوطني</span><div class="theme-number-input-wrap"><input id="nationalDayNumber" inputmode="numeric" maxlength="3" value="96" oninput="updateNationalDayNumber(this.value)"><b>اليوم الوطني السعودي</b></div></label>
+                </div>
               </div>
             </div>
           </div>
@@ -157,7 +184,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    document.write('<script src="/firebase-config.js?mzjv60='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
+    document.write('<script src="/firebase-config.js?mzjv63='+encodeURIComponent(window.MZJ_PAGE_CACHE_BUSTER)+'"><\/script>');
   </script>
   <script>
     firebase.initializeApp(window.MZJ_FIREBASE_CONFIG);
@@ -174,17 +201,18 @@
     var draft={color:'all',colorLabel:'',selectedImages:[],themeId:''},draftDirty=false;
     var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right',activeThemeId:'ramadan'};
     var themeDefaults={
-      ramadan:{logoDataUrl:'',logoSize:120,caption:'رمضان يجمعنا',captionFontSize:16},
-      national:{logoDataUrl:'/assets/themes/national-day-default.png',logoSize:120,caption:'اليوم الوطني السعودي',captionFontSize:16,nationalDayNumber:'96'},
-      founding:{logoDataUrl:'',logoSize:120,caption:'جذورنا تصنع مستقبلنا',captionFontSize:16},
-      'eid-fitr':{logoDataUrl:'',logoSize:120,caption:'عيدكم أجمل',captionFontSize:16},
-      'eid-adha':{logoDataUrl:'',logoSize:120,caption:'عيد أضحى مبارك',captionFontSize:16}
+      ramadan:{logoDataUrl:'',logoSize:120,caption:'رمضان يجمعنا',captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#071c35',captionStrokeWidth:1},
+      national:{logoDataUrl:'/assets/themes/national-day-default.png',logoSize:120,caption:'اليوم الوطني السعودي',captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#004631',captionStrokeWidth:1,nationalDayNumber:'96'},
+      founding:{logoDataUrl:'',logoSize:120,caption:'جذورنا تصنع مستقبلنا',captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#4b2e1f',captionStrokeWidth:1},
+      'eid-fitr':{logoDataUrl:'',logoSize:120,caption:'عيدكم أجمل',captionFontSize:16,captionColor:'#3d2b1f',captionStrokeColor:'#fff8e8',captionStrokeWidth:1},
+      'eid-adha':{logoDataUrl:'',logoSize:120,caption:'عيد أضحى مبارك',captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#48121f',captionStrokeWidth:1}
     };
     var themeSettings={};
 
     function $(id){return document.getElementById(id);}
     function esc(s){return String(s||'').replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];});}
     function cleanText(s){return String(s||'').replace(/\s+/g,' ').trim();}
+    function normalizeHexColor(value,fallback){var v=String(value||'').trim();if(/^#[0-9a-fA-F]{6}$/.test(v))return v.toLowerCase();if(/^#[0-9a-fA-F]{3}$/.test(v)){return ('#'+v.slice(1).split('').map(function(c){return c+c;}).join('')).toLowerCase();}return String(fallback||'#ffffff').toLowerCase();}
     function norm(s){return cleanText(s).toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[ًٌٍَُِّْـ]/g,'').replace(/[^\u0600-\u06ff0-9a-z]+/g,' ').replace(/\s+/g,' ').trim();}
     function hash(str){var h=2166136261;str=String(str||'');for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);}return 'car_'+(h>>>0).toString(16);}
     function setMsg(text,type){var el=$('statusMsg');if(!text){el.classList.add('hidden');return;}el.className='status-msg '+(type||'info');el.textContent=text;}
@@ -253,20 +281,40 @@
     function selectTheme(id){if(!themeById(id))return;draft.themeId=id;draftDirty=true;renderThemePicker();toggleDraftNotice(true);}
     function currentThemeConfig(){var id=draft.themeId||displaySettings.activeThemeId||'ramadan';if(!themeSettings[id])themeSettings[id]=Object.assign({},themeDefaults[id]||themeDefaults.ramadan);return themeSettings[id];}
     function renderThemeIdentitySettings(){
-      var box=$('themeIdentityConfig');if(!box)return;var id=draft.themeId||displaySettings.activeThemeId||'ramadan',t=themeById(id)||THEMES[0],cfg=currentThemeConfig();
+      var box=$('themeIdentityConfig');if(!box)return;
+      var id=draft.themeId||displaySettings.activeThemeId||'ramadan',t=themeById(id)||THEMES[0],cfg=currentThemeConfig();
+      var logoSize=Math.max(60,Math.min(260,Number(cfg.logoSize||120)));
+      var captionSize=Math.max(10,Math.min(40,Number(cfg.captionFontSize||16)));
+      var captionColor=normalizeHexColor(cfg.captionColor,themeDefaults[id].captionColor||'#ffffff');
+      var strokeColor=normalizeHexColor(cfg.captionStrokeColor,themeDefaults[id].captionStrokeColor||'#000000');
+      var strokeWidth=Math.max(0,Math.min(4,Number(cfg.captionStrokeWidth==null?1:cfg.captionStrokeWidth)));
+      cfg.captionColor=captionColor;cfg.captionStrokeColor=strokeColor;cfg.captionStrokeWidth=strokeWidth;
       $('themeConfigTitle').textContent='هوية '+t.title;
       $('themeCaptionInput').value=cleanText(cfg.caption||'');
-      $('themeLogoSize').value=Math.max(60,Math.min(260,Number(cfg.logoSize||120)));$('themeLogoSizeView').textContent=$('themeLogoSize').value+'px';
-      $('themeCaptionFontSize').value=Math.max(10,Math.min(32,Number(cfg.captionFontSize||16)));$('themeCaptionFontSizeView').textContent=$('themeCaptionFontSize').value+'px';
+      $('themeLogoSize').value=logoSize;$('themeLogoSizeView').textContent=logoSize+'px';
+      $('themeCaptionFontSize').value=captionSize;$('themeCaptionFontSizeView').textContent=captionSize+'px';
+      $('themeCaptionColor').value=captionColor;$('themeCaptionColorHex').value=captionColor;
+      $('themeCaptionStrokeColor').value=strokeColor;$('themeCaptionStrokeColorHex').value=strokeColor;
+      $('themeCaptionStrokeWidth').value=strokeWidth;$('themeCaptionStrokeWidthView').textContent=(strokeWidth%1?strokeWidth.toFixed(2).replace(/0+$/,'').replace(/\.$/,''):strokeWidth)+'px';
       $('nationalNumberField').classList.toggle('hidden',id!=='national');if(id==='national')$('nationalDayNumber').value=cleanText(cfg.nationalDayNumber||'96');
-      var preview=$('themeLogoPreview');preview.innerHTML=(cfg.logoDataUrl?'<img src="'+esc(cfg.logoDataUrl)+'" alt="شعار '+esc(t.title)+'" style="width:'+Math.max(60,Math.min(260,Number(cfg.logoSize||120)))+'px">':'<div class="theme-logo-empty">لا يوجد شعار مرفوع لهذا التصميم</div>')+'<div><strong style="font-size:'+Math.max(10,Math.min(32,Number(cfg.captionFontSize||16)))+'px">'+esc(cleanText(cfg.caption||''))+'</strong><small>'+esc(t.title)+'</small></div>';
+      var preview=$('themeLogoPreview');
+      preview.className='theme-logo-preview theme-preview-'+id;
+      var textStyle='font-size:'+captionSize+'px;color:'+captionColor+';-webkit-text-stroke:'+strokeWidth+'px '+strokeColor+';paint-order:stroke fill;';
+      preview.innerHTML='<div class="theme-preview-surface">'+
+        (cfg.logoDataUrl?'<img src="'+esc(cfg.logoDataUrl)+'" alt="شعار '+esc(t.title)+'" style="width:'+logoSize+'px">':'<div class="theme-logo-empty">لا يوجد شعار مرفوع لهذا التصميم</div>')+
+        '<strong class="theme-caption-preview" style="'+textStyle+'">'+esc(cleanText(cfg.caption||''))+'</strong>'+
+        (id==='national'?'<b class="theme-number-preview">'+esc(cleanText(cfg.nationalDayNumber||'96'))+'</b>':'')+
+        '</div><small class="theme-preview-theme-name">'+esc(t.title)+'</small>';
     }
     function chooseThemeLogo(input){var file=input.files&&input.files[0];if(!file)return;if(file.size>600*1024){setMsg('حجم الشعار كبير. اختار ملف أقل من 600KB.','error');input.value='';return;}var reader=new FileReader();reader.onload=function(){currentThemeConfig().logoDataUrl=String(reader.result||'');draftDirty=true;renderThemeIdentitySettings();renderThemePicker();toggleDraftNotice(true);};reader.readAsDataURL(file);}
     function removeThemeLogo(){var id=draft.themeId||displaySettings.activeThemeId||'ramadan';currentThemeConfig().logoDataUrl=(id==='national'?'/assets/themes/national-day-default.png':'');draftDirty=true;renderThemeIdentitySettings();renderThemePicker();toggleDraftNotice(true);}
-    function updateThemeCaption(value){currentThemeConfig().caption=String(value||'').slice(0,80);draftDirty=true;renderThemePicker();toggleDraftNotice(true);var p=$('themeLogoPreview');if(p)renderThemeIdentitySettings();}
-    function updateThemeLogoSize(value){var v=Math.max(60,Math.min(260,Number(value||120)));currentThemeConfig().logoSize=v;draftDirty=true;$('themeLogoSizeView').textContent=v+'px';renderThemeIdentitySettings();toggleDraftNotice(true);}
-    function updateThemeCaptionFontSize(value){var v=Math.max(10,Math.min(32,Number(value||16)));currentThemeConfig().captionFontSize=v;draftDirty=true;$('themeCaptionFontSizeView').textContent=v+'px';renderThemeIdentitySettings();toggleDraftNotice(true);}
-    function updateNationalDayNumber(value){var n=String(value||'').replace(/[^0-9]/g,'').slice(0,3);if(!n)n='96';currentThemeConfig().nationalDayNumber=n;draftDirty=true;renderThemePicker();toggleDraftNotice(true);}
+    function updateThemeCaption(value){currentThemeConfig().caption=String(value||'').slice(0,80);draftDirty=true;renderThemeIdentitySettings();renderThemePicker();toggleDraftNotice(true);}
+    function updateThemeLogoSize(value){var v=Math.max(60,Math.min(260,Number(value||120)));currentThemeConfig().logoSize=v;draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
+    function updateThemeCaptionFontSize(value){var v=Math.max(10,Math.min(40,Number(value||16)));currentThemeConfig().captionFontSize=v;draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
+    function updateThemeCaptionColor(value){var id=draft.themeId||displaySettings.activeThemeId||'ramadan',cfg=currentThemeConfig();cfg.captionColor=normalizeHexColor(value,themeDefaults[id].captionColor||'#ffffff');draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
+    function updateThemeCaptionStrokeColor(value){var id=draft.themeId||displaySettings.activeThemeId||'ramadan',cfg=currentThemeConfig();cfg.captionStrokeColor=normalizeHexColor(value,themeDefaults[id].captionStrokeColor||'#000000');draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
+    function updateThemeCaptionStrokeWidth(value){var v=Math.max(0,Math.min(4,Number(value||0)));currentThemeConfig().captionStrokeWidth=v;draftDirty=true;renderThemeIdentitySettings();toggleDraftNotice(true);}
+    function updateNationalDayNumber(value){var n=String(value||'').replace(/[^0-9]/g,'').slice(0,3);if(!n)n='96';currentThemeConfig().nationalDayNumber=n;draftDirty=true;renderThemeIdentitySettings();renderThemePicker();toggleDraftNotice(true);}
     function hasUnsavedVehicleDraft(){
       var s=screens[selectedScreen]||{},savedImages=Array.isArray(s.selectedImages)?s.selectedImages:[],draftImages=Array.isArray(draft.selectedImages)?draft.selectedImages:[];
       var currentCarId=selectedCar?String(selectedCar.id||''):String(s.carId||'');
@@ -281,7 +329,7 @@
         await db.collection('showroom_theme_settings').doc(draft.themeId).set(Object.assign({},cfg,{updatedAt:firebase.firestore.FieldValue.serverTimestamp()}),{merge:true});
         await db.collection('showroom_settings').doc('display').set({activeThemeId:draft.themeId,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
         await Promise.all(CODES.map(function(code){var old=screens[code]||{},payload={themeId:draft.themeId,forceRefresh:stamp,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};screens[code]=Object.assign({},old,payload);return db.collection('showroom_screens').doc(code).set(payload,{merge:true});}));
-        draftDirty=hasUnsavedVehicleDraft();toggleDraftNotice(draftDirty);renderThemePicker();renderScreenTabs();refreshPreviewFrame();setMsg('تم حفظ تصميم '+themeById(draft.themeId).title+' وهوية الشعار وتطبيقه على كل الشاشات.','ok');
+        draftDirty=hasUnsavedVehicleDraft();toggleDraftNotice(draftDirty);renderThemePicker();renderScreenTabs();refreshPreviewFrame();setMsg('تم حفظ تصميم '+themeById(draft.themeId).title+' وهوية الشعار وألوان النص وإطاره وتطبيقه على كل الشاشات.','ok');
       }catch(e){setMsg('تعذر حفظ تصميم العرض: '+e.message,'error');}
     }
 
