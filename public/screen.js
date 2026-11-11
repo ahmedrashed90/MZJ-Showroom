@@ -17,11 +17,11 @@ var data=null;
 var screenOptions={carId:'',carUrl:'',carName:'',carPrice:'',imageFilterColor:'all',imageFilterLabel:'',selectedImages:[],sliderImages:[],sliderMode:'all',themeId:''};
 var displaySettings={featureFontSize:18,logoDataUrl:'',logoWidth:120,logoPosition:'right',activeThemeId:'ramadan'};
 var THEME_DEFAULTS={
-  ramadan:{title:'رمضان',caption:'رمضان يجمعنا',logoDataUrl:'',logoSize:120,captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#071c35',captionStrokeWidth:1,logoPosition:'top-left',captionPosition:'top-left'},
-  national:{title:'اليوم الوطني',caption:'اليوم الوطني السعودي',logoDataUrl:'/assets/themes/national-day-default.png',logoSize:120,captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#004631',captionStrokeWidth:1,nationalDayNumber:'96',logoPosition:'top-left',captionPosition:'top-left'},
-  founding:{title:'يوم التأسيس',caption:'جذورنا تصنع مستقبلنا',logoDataUrl:'',logoSize:120,captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#4b2e1f',captionStrokeWidth:1,logoPosition:'top-left',captionPosition:'top-left'},
+  ramadan:{title:'رمضان',caption:'رمضان يجمعنا',logoDataUrl:'',logoSize:120,captionFontSize:16,captionColor:'#4a211c',captionStrokeColor:'#071c35',captionStrokeWidth:1,logoPosition:'top-left',captionPosition:'top-left'},
+  national:{title:'اليوم الوطني',caption:'اليوم الوطني السعودي',logoDataUrl:'/assets/themes/national-day-default.png',logoSize:120,captionFontSize:16,captionColor:'#4a211c',captionStrokeColor:'#004631',captionStrokeWidth:1,nationalDayNumber:'96',logoPosition:'top-left',captionPosition:'top-left'},
+  founding:{title:'يوم التأسيس',caption:'جذورنا تصنع مستقبلنا',logoDataUrl:'',logoSize:120,captionFontSize:16,captionColor:'#4a211c',captionStrokeColor:'#4b2e1f',captionStrokeWidth:1,logoPosition:'top-left',captionPosition:'top-left'},
   'eid-fitr':{title:'عيد الفطر',caption:'عيدكم أجمل',logoDataUrl:'',logoSize:120,captionFontSize:16,captionColor:'#3d2b1f',captionStrokeColor:'#fff8e8',captionStrokeWidth:1,logoPosition:'top-left',captionPosition:'top-left'},
-  'eid-adha':{title:'عيد الأضحى',caption:'عيد أضحى مبارك',logoDataUrl:'',logoSize:120,captionFontSize:16,captionColor:'#ffffff',captionStrokeColor:'#48121f',captionStrokeWidth:1,logoPosition:'top-left',captionPosition:'top-left'}
+  'eid-adha':{title:'عيد الأضحى',caption:'عيد أضحى مبارك',logoDataUrl:'',logoSize:120,captionFontSize:16,captionColor:'#4a211c',captionStrokeColor:'#48121f',captionStrokeWidth:1,logoPosition:'top-left',captionPosition:'top-left'}
 };
 var themeIdentity=Object.assign({},THEME_DEFAULTS.ramadan);
 var themeIdentityUnsub=null;
@@ -114,10 +114,10 @@ function technicalGroups(){var seen={};mainSpecs().forEach(function(x){seen[x[2]
 function featureData(){var fg=(data&&data.featureGroups)||{};return{interior:uniq(fg.interior||[]),exterior:uniq(fg.exterior||[]),safety:uniq(fg.safety||[])};}
 function validFeatureSections(){var d=featureData();return['interior','exterior','safety'].filter(function(k){return d[k].length;});}
 function featureTitle(key){return key==='interior'?'المواصفات الداخلية':key==='exterior'?'المواصفات الخارجية':'مواصفات الأمان';}
-function featurePageSize(){return 14;}
+function featurePageSize(){return window.innerHeight<=740?10:14;}
 function featurePageCount(section){var items=featureData()[section]||[];return Math.max(1,Math.ceil(items.length/featurePageSize()));}
 
-/* ---------- V67 clean premium information composition ---------- */
+/* ---------- V68 clean light information composition ---------- */
 var THEME_POSITIONS=['top-right','top-center','top-left','middle-right','center','middle-left','bottom-right','bottom-center','bottom-left'];
 function normalizeThemePosition(value,fallback){return THEME_POSITIONS.indexOf(String(value||''))>=0?String(value):String(fallback||'top-left');}
 function legacyThemePosition(x,y,fallback){var nx=Number(x),ny=Number(y);if(!isFinite(nx)||!isFinite(ny))return normalizeThemePosition(fallback,'top-left');var h=nx<34?'left':(nx>66?'right':'center'),v=ny<34?'top':(ny>66?'bottom':'middle');if(v==='middle'&&h==='center')return'center';return v+'-'+h;}
@@ -130,6 +130,9 @@ function identityHtml(){
   var captionColor=normalizeHexColor(themeIdentity.captionColor,defaults.captionColor||'#ffffff');
   var strokeColor=normalizeHexColor(themeIdentity.captionStrokeColor,defaults.captionStrokeColor||'#000000');
   var strokeWidth=Math.max(0,Math.min(4,Number(themeIdentity.captionStrokeWidth==null?1:themeIdentity.captionStrokeWidth)));
+  var rgb=[1,3,5].map(function(i){return parseInt(captionColor.slice(i,i+2),16)/255;});
+  var brightness=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;
+  if(brightness>.73){strokeWidth=Math.max(strokeWidth,1.4);strokeColor='#4a211c';}
   var logoPosition=normalizeThemePosition(themeIdentity.logoPosition,legacyThemePosition(themeIdentity.logoX,themeIdentity.logoY,defaults.logoPosition||'top-left'));
   var captionPosition=normalizeThemePosition(themeIdentity.captionPosition,legacyThemePosition(themeIdentity.captionX,themeIdentity.captionY,defaults.captionPosition||'top-left'));
   var number=id==='national'?cleanText(themeIdentity.nationalDayNumber||'96'):'';
@@ -143,7 +146,7 @@ function identityHtml(){
     '</div>':'')+
   '</div>';
 }
-function mzjLogoHtml(){if(!displaySettings.logoDataUrl)return'';var pos=displaySettings.logoPosition==='left'?'logo-left':'logo-right';return'<div class="brand-row '+pos+'"><img class="mzj-logo" src="'+esc(displaySettings.logoDataUrl)+'" alt="MZJ"></div>';}
+function mzjLogoHtml(){if(!displaySettings.logoDataUrl)return'';var pos=displaySettings.logoPosition==='left'?'logo-left':'logo-right';return'<div class="brand-row '+pos+'"><img class="mzj-logo" src="'+esc(displaySettings.logoDataUrl)+'" alt="MZJ"></div>'; }
 function colorChip(row,type){var active=type==='external'&&selectedColorName()&&normArabic(row.name)===normArabic(selectedColorName());return'<span class="color-chip '+(active?'active':'')+'"><i style="background:'+esc(row.background||'#dedede')+'"></i><b>'+esc(row.name)+'</b></span>';}
 function colorsHtml(){var rows=colorRows(),parts=[];if(rows.external.length)parts.push('<div class="color-line"><span>الخارجي</span><div class="color-list">'+rows.external.map(function(r){return colorChip(r,'external');}).join('')+'</div></div>');if(rows.internal.length)parts.push('<div class="color-line"><span>الداخلي</span><div class="color-list">'+rows.internal.map(function(r){return colorChip(r,'internal');}).join('')+'</div></div>');return parts.length?'<div class="colors-ribbon"><strong>الألوان المتاحة</strong><div class="color-groups">'+parts.join('')+'</div></div>':'';}
 function sectionHeading(index,text){return'<div class="section-head"><span class="section-gem"></span><strong>'+esc(text)+'</strong><i class="section-line"></i><span class="section-kicker">'+esc(index)+'</span></div>';}
@@ -163,14 +166,14 @@ function pagerHtml(total){if(total<=1)return'<div class="feature-pager"><strong>
 function featuresHtml(){
   var groups=featureData(),valid=validFeatureSections();if(!valid.length)return'';
   if(valid.indexOf(featureSection)<0){featureSection=valid[0];featurePage=0;}
-  var items=groups[featureSection]||[],pages=Math.max(1,Math.ceil(items.length/14));if(featurePage>=pages)featurePage=0;if(featurePage<0)featurePage=pages-1;
-  var visible=items.slice(featurePage*14,(featurePage+1)*14),right=visible.slice(0,7),left=visible.slice(7,14);
+  var items=groups[featureSection]||[],pageSize=featurePageSize(),columnSize=Math.ceil(pageSize/2),pages=Math.max(1,Math.ceil(items.length/pageSize));if(featurePage>=pages)featurePage=0;if(featurePage<0)featurePage=pages-1;
+  var visible=items.slice(featurePage*pageSize,(featurePage+1)*pageSize),right=visible.slice(0,columnSize),left=visible.slice(columnSize,pageSize);
   function rows(arr){return arr.map(function(x,i){return'<div class="feature-item" data-order="'+(i+1)+'"><i class="feature-bullet"></i><span>'+esc(x)+'</span></div>';}).join('');}
   return'<section class="info-section features-section">'+sectionHeading('03','المواصفات والمميزات')+
     '<div class="feature-nav-row"><div class="feature-tabs">'+valid.map(function(k){return'<button type="button" class="feature-tab '+(k===featureSection?'active':'')+'" data-section="'+k+'"><span>'+esc(featureTitle(k))+'</span></button>';}).join('')+'</div></div>'+
-    '<div class="feature-stage"><div class="feature-columns"><div class="feature-column feature-column-right">'+rows(right)+'</div><div class="feature-column feature-column-left">'+rows(left)+'</div></div></div>'+pagerHtml(pages)+'</section>';
+    '<div class="feature-stage"><div class="feature-columns" style="--feature-rows:'+columnSize+'"><div class="feature-column feature-column-right">'+rows(right)+'</div><div class="feature-column feature-column-left">'+rows(left)+'</div></div></div>'+pagerHtml(pages)+'</section>';
 }
-function bottomHtml(){return'<footer class="bottom-composition"><div class="qr-side"><div id="showroomQr" class="qr-box"></div><div class="qr-copy"><strong>تفاصيل السيارة على جوالك</strong><span>امسح الرمز لعرض التفاصيل الكاملة</span></div></div><div class="tagline">رحلة أجمل .. مع MZJ</div></footer>';}
+function bottomHtml(){return'<footer class="bottom-composition"><div class="footer-gallery-side"><span class="footer-gallery-icon" aria-hidden="true">&#9638;</span><strong>\u0645\u0639\u0631\u0636 \u0627\u0644\u0635\u0648\u0631</strong><span id="footerImageCounter" class="footer-gallery-count">1 / 1</span></div><div class="tagline">\u0631\u062d\u0644\u0629 \u0623\u062c\u0645\u0644 .. \u0645\u0639 MZJ</div><div class="qr-side"><div id="showroomQr" class="qr-box"></div><div class="qr-copy"><strong>\u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u0633\u064a\u0627\u0631\u0629 \u0639\u0644\u0649 \u062c\u0648\u0627\u0644\u0643</strong><span>\u0627\u0645\u0633\u062d \u0627\u0644\u0631\u0645\u0632 \u0644\u0639\u0631\u0636 \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u0643\u0627\u0645\u0644\u0629</span></div></div></footer>';}
 
 function render(){
   if(!data){empty();return;}
@@ -187,14 +190,14 @@ function render(){
     '<aside class="info-zone"><div class="info-ornament" aria-hidden="true"></div><div class="info-canvas">'+
       '<header class="vehicle-hero"><div class="vehicle-copy">'+mzjLogoHtml()+'<h1 class="vehicle-title">'+esc(title)+'</h1></div>'+
       (price?'<div class="price-emblem"><strong>'+esc(price)+' <span>ر.س</span></strong><small>السعر شامل ضريبة القيمة المضافة</small></div>':'')+'</header>'+
-      colorsHtml()+mainSpecsHtml()+'<div id="techSlot">'+techHtml()+'</div><div id="featureSlot">'+featuresHtml()+'</div>'+bottomHtml()+
-    '</div></aside>';
+      colorsHtml()+mainSpecsHtml()+'<div id="techSlot">'+techHtml()+'</div><div id="featureSlot">'+featuresHtml()+'</div>'+
+    '</div></aside>'+bottomHtml();
   applyDisplaySettings();bindRendered();updateImageOnly();renderQr();startImageLoop();startFeatureLoop();
 }
 
 /* ---------- runtime interaction ---------- */
 function renderQr(){var el=document.getElementById('showroomQr'),url=screenOptions.carUrl||(data&&data.carUrl)||'';if(!el||!url)return;el.innerHTML='';if(window.QRCode){try{new QRCode(el,{text:url,width:76,height:76,colorDark:'#201915',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}catch(e){}}}
-function renderDots(){var el=document.getElementById('showroomDots'),arr=images();if(!el)return;if(arr.length<2){el.innerHTML='';el.classList.add('hidden');return;}el.classList.remove('hidden');var max=Math.min(arr.length,14),active=(imageIndex%max+max)%max;el.innerHTML=Array.from({length:max}).map(function(_,i){return'<span class="image-dot '+(i===active?'active':'')+'"></span>';}).join('');}
+function renderDots(){var el=document.getElementById('showroomDots'),arr=images(),counter=document.getElementById('footerImageCounter');if(counter)counter.textContent=(arr.length?imageIndex+1:0)+' / '+arr.length;if(!el)return;if(arr.length<2){el.innerHTML='';el.classList.add('hidden');return;}el.classList.remove('hidden');var max=Math.min(arr.length,14),active=(imageIndex%max+max)%max;el.innerHTML=Array.from({length:max}).map(function(_,i){return'<span class="image-dot '+(i===active?'active':'')+'"></span>';}).join('');}
 function setImageSource(img,url){if(!img)return;if(!url){img.removeAttribute('src');img.classList.add('hidden');return;}img.src=url;img.classList.remove('hidden');}
 function updateImageOnly(){
   var img=document.getElementById('showroomCarImage'),backdrop=document.getElementById('showroomCarBackdrop'),src=currentImage();
